@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { useState } from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -8,13 +7,27 @@ import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import NavBar from './NavBar';
 
+
 import { Outlet } from "react-router-dom";
 
 
 export default function MainLayout() {
-    const [selectedSection, setSelectedSection] = useState('view-element');
-
     const drawerWidth: number = 240;
+    // let mainListenerAdded = false;
+
+    // if (!mainListenerAdded) {
+    //     console.log('adding main listener');
+    //     const navigate = useNavigate();
+    //     miro.board.ui.on('selection:update', async (event) => {
+    //         if (event.items.length != 1)
+    //             return;
+    //         const { pathname } = useLocation();
+    //         if (pathname !== '/view-element')
+    //             navigate('/view-element');
+    //     });
+    //     mainListenerAdded = true;
+    // }
+
 
     const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
         ({ theme, open }) => ({

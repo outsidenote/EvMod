@@ -1,22 +1,31 @@
 import * as React from 'react';
 import JSONInput from 'react-json-editor-ajrm/es';
 import locale from 'react-json-editor-ajrm/locale/en';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 
 export default function ViewElement() {
     let [jsonData, setJsonData] = useState({});
     let [selectedElement, setSelectedElement]: any = useState();
     let [errMsg, setErrMsg] = useState('');
+    let [listenerAdded, setListenerAdded] = useState(false);
 
-    miro.board.ui.on('selection:update', async (event) => {
-        const clearSelection = () => {
-            setErrMsg('');
-            setJsonData({});
-            setSelectedElement();
-        }
+    const setSelection = async (items: Array<any>) => {
+        const element = items[0]
+        console.log('selected element:', element)
+        setSelectedElement(element);
+        setJsonData(await element.getMetadata('jsonData'))
+    }
+
+    const clearSelection = () => {
+        setErrMsg('');
+        setJsonData({});
+        setSelectedElement();
+    }
+
+    const selectionHandler = async (event: any) => {
         clearSelection();
-        
+
         const selectedItems = event.items;
         if (event.items.length != 1) {
             setErrMsg('Please select a single element');
@@ -25,13 +34,13 @@ export default function ViewElement() {
         }
 
         // Filter sticky notes from the selected items
-        const element = selectedItems[0]
-        console.log('selected element:', element)
-        setSelectedElement(element);
-        setJsonData(await element.getMetadata('jsonData'))
+        setSelection(selectedItems);
 
-    });
-
+    }
+    if (!listenerAdded) {
+        miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener:', l));
+        setListenerAdded(true);
+    }
     return (
         <div>
             <h1>View Element</h1>
