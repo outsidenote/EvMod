@@ -11,6 +11,7 @@ const router = createMemoryRouter([
     path: "/",
     element: <MainLayout />,
     children: [
+      { path: "/", element: (<div>Home Page</div>) },
       {
         path: 'element-details',
         element: <SelectionDetails />
