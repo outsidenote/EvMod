@@ -2,6 +2,7 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import MainLayout from './components/MainLayout';
 import ViewElement from './components/ViewElement';
+import AddElement from './components/AddElement';
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import '../src/assets/style.css';
@@ -13,7 +14,7 @@ const router = createMemoryRouter([
     children: [
       { path: "/", element: (<div>Home Page</div>) },
       { path: 'view-element', element: <ViewElement /> },
-      { path: 'add-element', element: (<div>Add Element</div>) },
+      { path: 'add-element', element: (<AddElement />) },
     ]
 
   }
