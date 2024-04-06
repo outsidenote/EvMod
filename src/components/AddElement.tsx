@@ -133,6 +133,11 @@ export default function AddElement() {
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                             setElementName(event.target.value);
                         }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                handleSubmit()
+                            }
+                        }}
                     />
                     <Button variant="outlined" color="info" onClick={handleSubmit}>Create</Button>
                 </Box>
