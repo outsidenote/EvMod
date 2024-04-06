@@ -4,7 +4,7 @@ import locale from 'react-json-editor-ajrm/locale/en';
 import { useState } from "react";
 
 
-export default function SelectionDetails() {
+export default function ViewElement() {
     let [jsonData, setJsonData] = useState({});
     let selectedElement: any;
     let [errMsg, setErrMsg] = useState('');

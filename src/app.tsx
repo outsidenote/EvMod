@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import MainLayout from './components/MainLayout';
-import SelectionDetails from './components/SelectionDetails';
+import ViewElement from './components/ViewElement';
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import '../src/assets/style.css';
@@ -12,7 +12,7 @@ const router = createMemoryRouter([
     element: <MainLayout />,
     children: [
       { path: "/", element: (<div>Home Page</div>) },
-      { path: 'view-element', element: <SelectionDetails /> },
+      { path: 'view-element', element: <ViewElement /> },
       { path: 'add-element', element: (<div>Add Element</div>) },
     ]
 
