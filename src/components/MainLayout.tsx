@@ -7,10 +7,8 @@ import MuiDrawer from '@mui/material/Drawer';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import NavBar from './NavBar';
-import SelectionDetails from './SelectionDetails';
 
 import { Outlet } from "react-router-dom";
-import { NavigateBeforeSharp } from '@mui/icons-material';
 
 
 export default function MainLayout() {
