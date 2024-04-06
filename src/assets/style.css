@@ -13,7 +13,7 @@ body {
 #root {
   width: 100%;
   overflow: auto;
-  padding: var(--space-medium);
+  /* padding: var(--space-medium); */
 }
 
 img {
