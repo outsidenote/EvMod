@@ -77,7 +77,7 @@ export default function AddElement() {
 
     return (
         <div>
-            <h1>Create Element</h1>
+            <h1>Add Element</h1>
             <p>Create a new element by clicking on one of the buttons</p>
             <Stack spacing={2} direction="column">
                 <Button variant="contained" color="warning" onClick={() => handleOpen('Event')}>Create Event</Button>

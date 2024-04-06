@@ -6,21 +6,28 @@ import { useState } from "react";
 
 export default function ViewElement() {
     let [jsonData, setJsonData] = useState({});
-    let selectedElement: any;
+    let [selectedElement, setSelectedElement]: any = useState();
     let [errMsg, setErrMsg] = useState('');
 
     miro.board.ui.on('selection:update', async (event) => {
+        const clearSelection = () => {
+            setErrMsg('');
+            setJsonData({});
+            setSelectedElement();
+        }
+        clearSelection();
+        
         const selectedItems = event.items;
         if (event.items.length != 1) {
             setErrMsg('Please select a single element');
             setJsonData({});
             return;
         }
-        setErrMsg('');
-        setJsonData({});
 
         // Filter sticky notes from the selected items
         const element = selectedItems[0]
+        console.log('selected element:', element)
+        setSelectedElement(element);
         setJsonData(await element.getMetadata('jsonData'))
 
     });
@@ -39,7 +46,7 @@ export default function ViewElement() {
                         width='100%'
                         height='300px'
                         onChange={async (e: any) => {
-                            console.log('json data has change - going to save:', e.jsObject);
+                            console.log('json data has change - going to save:', e.jsObject, 'selected el:', selectedElement);
                             await selectedElement.setMetadata('jsonData', e.jsObject);
                         }}
                     />
