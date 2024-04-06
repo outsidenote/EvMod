@@ -57,7 +57,7 @@ export default function AddElement() {
             return 300;
         return 200;
     };
-    
+
     const getHeight = () => {
         if (elementType == 'Screen')
             return 150;
@@ -126,11 +126,11 @@ export default function AddElement() {
             <h1>Add Element</h1>
             <p>Create a new element by clicking on one of the buttons</p>
             <Stack spacing={2} direction="column">
-                <Button variant="contained" color="warning" onClick={() => handleOpen('Event')}>Create Event</Button>
-                <Button variant="contained" color="info" onClick={() => handleOpen('Command')}>Create Command</Button>
-                <Button variant="contained" color="success" onClick={() => handleOpen('Read Model')}>Create Read Model</Button>
-                <Button startIcon={<CogsIcon />} variant="outlined" color="info" onClick={() => handleOpen('Processor')}>Create Processor</Button>
-                <Button startIcon={<ScreenIcon />} variant="outlined" color="info" onClick={() => handleOpen('Screen')}>Create Screen</Button>
+                <Button variant="contained" color="warning" onClick={() => handleOpen('Event')}>Event</Button>
+                <Button variant="contained" color="info" onClick={() => handleOpen('Command')}>Command</Button>
+                <Button variant="contained" color="success" onClick={() => handleOpen('Read Model')}>Read Model</Button>
+                <Button startIcon={<CogsIcon />} variant="outlined" color="info" onClick={() => handleOpen('Processor')}>Processor</Button>
+                <Button startIcon={<ScreenIcon />} variant="outlined" color="info" onClick={() => handleOpen('Screen')}>Screen</Button>
             </Stack>
             <Modal
                 open={open}
