@@ -27,7 +27,7 @@ export default function SelectionDetails() {
 
     return (
         <div>
-            <h1>Element Details</h1>
+            <h1>View Element</h1>
             <p>Select an emelemnt in the board to see its data</p>
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             {

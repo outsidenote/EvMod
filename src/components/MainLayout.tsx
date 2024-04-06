@@ -12,7 +12,7 @@ import { Outlet } from "react-router-dom";
 
 
 export default function MainLayout() {
-    const [selectedSection, setSelectedSection] = useState('element-details');
+    const [selectedSection, setSelectedSection] = useState('view-element');
 
     const drawerWidth: number = 240;
 
