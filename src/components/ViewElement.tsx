@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useState, useEffect } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
+import Button from '@mui/material/Button';
+
 
 interface ISelectionHandlerInput {
     items: Array<any>
@@ -9,11 +11,12 @@ interface ISelectionHandlerInput {
 
 export default function ViewElement() {
     let [selectedElement, setSelectedElement]: any = useState();
+    let [selecting, setSelecting]: any = useState(false);
     let [errMsg, setErrMsg] = useState('');
 
     const setSelection = async (items: Array<any>) => {
         const element = items[0]
-        console.log('selected element:', element)
+        console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
     }
 
@@ -36,26 +39,34 @@ export default function ViewElement() {
 
     }
 
+    const handleView = async () => {
+        setSelecting(true);
+        const items = await miro.board.getSelection()
+        await selectionHandler({ items });
+        setSelecting(false);
+    }
+
     const isConnector = (): boolean => selectedElement?.type === "connector";
 
     useEffect(() => {
-        miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener added'));
+        // miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener added'));
 
-        miro.board.getSelection().then((items: Array<any>) => {
-            selectionHandler({ items })
-        })
+        // miro.board.getSelection().then((items: Array<any>) => {
+        //     selectionHandler({ items })
+        // })
 
-        return () => {
-            miro.board.ui.off('selection:update', selectionHandler).then(l => console.log('listener removed'));
-        }
+        // return () => {
+        //     miro.board.ui.off('selection:update', selectionHandler).then(l => console.log('listener removed'));
+        // }
     }, []);
 
 
     return (
         <div>
             <h1>View Element</h1>
-            <p>Select an emelemnt in the board to see its data</p>
+            <p>Select an emelemnt in the board to see its data and click the 'View Element' button</p>
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
+            <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
             {
                 !errMsg && !isConnector() && <ElementJsonData selectedElement={selectedElement} />
             }

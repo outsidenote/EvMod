@@ -1,0 +1,23 @@
+export enum ElementTypeEnum {
+    Command = "Command",
+    Event = "Event",
+    ReadModel = "Read Model",
+    Processor = "Processor",
+    Screen = "Screen",
+    Swimlane = "Swimlane"
+}
+
+export interface IEventData {
+
+}
+
+export interface ICommandData {
+
+}
+
+export interface IElementData {
+    elementType: ElementTypeEnum
+    data: ICommandData | IEventData
+}
+
+
