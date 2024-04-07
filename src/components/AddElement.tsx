@@ -80,6 +80,7 @@ export default function AddElement() {
     };
 
     const createShape = async () => {
+        const viewport = await miro.board.viewport.get();
         if (!!elementType && [
             ElementTypeEnum.Event,
             ElementTypeEnum.Command,
@@ -93,8 +94,8 @@ export default function AddElement() {
                     fillColor: getFillColor(),
                     borderColor: '#1A1A1A'
                 },
-                x: 0, // Default value: center of the board
-                y: 0, // Default value: center of the board
+                x: viewport.x + viewport.width/2, // Default value: center of the board
+                y: viewport.y + viewport.height/2, // Default value: center of the board
                 width: getWidth(),
                 height: getHeight(),
             });

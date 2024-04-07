@@ -10,9 +10,7 @@ import * as Immutable from 'immutable';
 
 import { Outlet } from "react-router-dom";
 import { EventsCatalogType, IEventsCatalogItem } from '../types/appStore.type';
-import { ElementTypeEnum } from '../types/element.types';
 import { EVENTS_CATALOG_KEY } from '../consts';
-import { Store } from '@mui/icons-material';
 
 type ContextType = [EventsCatalogType | undefined, React.Dispatch<React.SetStateAction<EventsCatalogType>> | undefined]
 const defaultContext: ContextType = [undefined, undefined];
