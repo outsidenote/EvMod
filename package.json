@@ -20,7 +20,7 @@
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
-    "@mirohq/websdk-types": "latest",
+    "@mirohq/websdk-types": "^2.14.1",
     "@types/node": "^18.8.2",
     "@types/react": "^18.0.24",
     "@types/react-dom": "^18.0.8",

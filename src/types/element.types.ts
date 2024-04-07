@@ -15,6 +15,11 @@ export interface ICommandData {
 
 }
 
+export interface IElementMetadata {
+    elementName: string,
+    elementType: ElementTypeEnum
+}
+
 export interface IElementData {
     elementType: ElementTypeEnum
     data: ICommandData | IEventData

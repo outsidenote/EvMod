@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
+import { IElementMetadata } from '../types/element.types';
+import { ELEMENT_METADTA_KEY } from '../consts';
 
 
 interface ISelectionHandlerInput {
@@ -13,16 +15,19 @@ export default function ViewElement() {
     let [selectedElement, setSelectedElement]: any = useState();
     let [selecting, setSelecting]: any = useState(false);
     let [errMsg, setErrMsg] = useState('');
+    const [elMetadata, setElMetadata] = useState<IElementMetadata>();
 
     const setSelection = async (items: Array<any>) => {
         const element = items[0]
         console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
+        setElMetadata(await element.getMetadata(ELEMENT_METADTA_KEY) || undefined);
     }
 
     const clearSelection = () => {
         setErrMsg('');
         setSelectedElement();
+        setElMetadata(undefined);
     }
 
     const selectionHandler = async (event: ISelectionHandlerInput) => {
@@ -67,6 +72,7 @@ export default function ViewElement() {
             <p>Select an emelemnt in the board to see its data and click the 'View Element' button</p>
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
+            {!!elMetadata && <h4><b>{elMetadata.elementType}:</b> {elMetadata.elementName}</h4>}
             {
                 !errMsg && !isConnector() && <ElementJsonData selectedElement={selectedElement} />
             }

@@ -1,0 +1,1 @@
+export const ELEMENT_METADTA_KEY: string = 'EvModelElementMetadata';
