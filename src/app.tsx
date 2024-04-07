@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import MainLayout from './components/MainLayout';
 import ViewElement from './components/ViewElement';
 import AddElement from './components/AddElement';
+import EventsCatalog from './components/EventsCatalog';
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import '../src/assets/style.css';
@@ -15,6 +16,7 @@ const router = createMemoryRouter([
       { path: "/", element: (<div>Home Page</div>) },
       { path: 'view-element', element: <ViewElement /> },
       { path: 'add-element', element: (<AddElement />) },
+      { path: 'events-catalog', element: (<EventsCatalog />) },
     ]
 
   }

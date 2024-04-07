@@ -1,7 +1,7 @@
 import Immutable from 'immutable'
-interface eventsCatalogItem {
+export interface IEventsCatalogItem {
     elementId: string
     elementName: string
 }
 
-export type eventsCatalog = Immutable.Map<string, eventsCatalogItem>
+export type EventsCatalogType = Immutable.Map<string, IEventsCatalogItem>

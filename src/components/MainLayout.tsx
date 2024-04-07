@@ -9,14 +9,27 @@ import NavBar from './NavBar';
 import * as Immutable from 'immutable';
 
 import { Outlet } from "react-router-dom";
-import { eventsCatalog } from '../types/appStore.type';
+import { EventsCatalogType, IEventsCatalogItem } from '../types/appStore.type';
 import { ElementTypeEnum } from '../types/element.types';
+import { EVENTS_CATALOG_KEY } from '../consts';
+import { Store } from '@mui/icons-material';
 
-export const Context = React.createContext<any>(undefined);
+type ContextType = [EventsCatalogType | undefined, React.Dispatch<React.SetStateAction<EventsCatalogType>> | undefined]
+const defaultContext: ContextType = [undefined, undefined];
+export const Context = React.createContext<ContextType>(defaultContext);
 
 export default function MainLayout() {
+    const [eventsCatalog, setEventsCatalog] = useState<EventsCatalogType>(Immutable.Map());
+    React.useEffect(() => {
+        miro.board.getAppData(EVENTS_CATALOG_KEY)
+            .then(catalogObj => {
+                const catalogMap: EventsCatalogType = catalogObj ? Immutable.Map<string, IEventsCatalogItem>(catalogObj) : Immutable.Map<string, IEventsCatalogItem>();
+                return catalogMap;
+            })
+            .then((catalogMap) => { setEventsCatalog(catalogMap) });
+    }, []);
+
     const drawerWidth: number = 240;
-    const [eventsCatalog, setEventsCatalog] = useState<eventsCatalog>(Immutable.Map({ 'a': { elementName: 'some name', elementId: "some id" } }));
 
 
     const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
