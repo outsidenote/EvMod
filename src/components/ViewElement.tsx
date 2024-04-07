@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 
+interface ISelectionHandlerInput {
+    items: Array<any>
+}
 
 export default function ViewElement() {
     let [selectedElement, setSelectedElement]: any = useState();
     let [errMsg, setErrMsg] = useState('');
-    let [listenerAdded, setListenerAdded] = useState(false);
 
     const setSelection = async (items: Array<any>) => {
         const element = items[0]
@@ -20,7 +22,7 @@ export default function ViewElement() {
         setSelectedElement();
     }
 
-    const selectionHandler = async (event: any) => {
+    const selectionHandler = async (event: ISelectionHandlerInput) => {
         clearSelection();
 
         const selectedItems = event.items;
@@ -33,12 +35,22 @@ export default function ViewElement() {
         setSelection(selectedItems);
 
     }
-    if (!listenerAdded) {
-        miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener:', l));
-        setListenerAdded(true);
-    }
 
     const isConnector = (): boolean => selectedElement?.type === "connector";
+
+    useEffect(() => {
+        miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener added'));
+
+        miro.board.getSelection().then((items: Array<any>) => {
+            selectionHandler({ items })
+        })
+
+        return () => {
+            miro.board.ui.off('selection:update', selectionHandler).then(l => console.log('listener removed'));
+        }
+    }, []);
+
+
     return (
         <div>
             <h1>View Element</h1>
