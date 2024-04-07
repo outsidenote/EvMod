@@ -10,7 +10,7 @@ import ScreenIcon from './ScreenIcon';
 import Crop169Icon from '@mui/icons-material/Crop169';
 import { ElementTypeEnum, IElementMetadata } from '../types/element.types';
 import type { Frame, Group, Shape } from '@mirohq/websdk-types';
-import { ELEMENT_METADTA_KEY, EVENTS_CATALOG_KEY } from '../consts';
+import { ELEMENT_METADTA_KEY, EVENTS_CATALOG_KEY, EVENT_IDS_CATALOG_KEY } from '../consts';
 import { Context } from './MainLayout';
 import * as Immutable from 'immutable';
 import { EventsCatalogType } from '../types/appStore.type';
@@ -22,10 +22,12 @@ export default function AddElement() {
     const [open, setOpen] = React.useState(false);
     const [elementType, setElementType] = React.useState<ElementTypeEnum | undefined>();
     const [elementName, setElementName] = React.useState('');
-    const [eventsCatalog, setEventsCatalog] = React.useContext(Context)
+    const [eventsCatalog, setEventsCatalog, eventsIdsCatalog, setEventsIdsCatalog] = React.useContext(Context)
 
     if (!setEventsCatalog)
         throw new Error('setEventsCatalog is missing');
+    if (!setEventsIdsCatalog)
+        throw new Error('setEventsIdsCatalog is missing');
 
     const handleOpen = (elementType: ElementTypeEnum) => {
         setElementType(elementType);
@@ -94,8 +96,8 @@ export default function AddElement() {
                     fillColor: getFillColor(),
                     borderColor: '#1A1A1A'
                 },
-                x: viewport.x + viewport.width/2, // Default value: center of the board
-                y: viewport.y + viewport.height/2, // Default value: center of the board
+                x: viewport.x + viewport.width / 2, // Default value: center of the board
+                y: viewport.y + viewport.height / 2, // Default value: center of the board
                 width: getWidth(),
                 height: getHeight(),
             });
@@ -154,14 +156,22 @@ export default function AddElement() {
     const updateEventsCatalog = async (element: Shape | Frame | Group) => {
         console.log('AddElement: adding event to catalog')
         const catalogItem = { elementId: element.id, elementName };
-        
+
         const updatedCatalog: EventsCatalogType = eventsCatalog ?
-        eventsCatalog.set(elementName, catalogItem) :
-        Immutable.Map({ elementName: catalogItem });
-        
+            eventsCatalog.set(elementName, catalogItem) :
+            Immutable.Map({ elementName: catalogItem });
+        const updatedIds: Immutable.Map<string, string> = eventsIdsCatalog ?
+            eventsIdsCatalog.set(element.id, elementName) :
+            Immutable.Map<string, string>({ [element.id]: elementName });
+
         setEventsCatalog(updatedCatalog);
+        setEventsIdsCatalog(updatedIds);
         console.log('AddElement: saving updated event catalog:', updatedCatalog)
-        await miro.board.setAppData(EVENTS_CATALOG_KEY, updatedCatalog.toObject());
+        console.log('AddElement: saving updated event ids catalog:', updatedIds)
+        await Promise.all([
+            miro.board.setAppData(EVENTS_CATALOG_KEY, updatedCatalog.toObject()),
+            miro.board.setAppData(EVENT_IDS_CATALOG_KEY, updatedIds.toObject())
+        ]);
     }
 
     const handleSubmit = async () => {

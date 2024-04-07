@@ -12,13 +12,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 
-
-
-
-
-
-
-
 export default function EventsCatalog() {
     const [open, setOpen] = React.useState(false);
     const [eventsCatalog, setEventsCatalog] = React.useContext(Context)
@@ -26,8 +19,18 @@ export default function EventsCatalog() {
     const [search, setSearch] = React.useState('');
     const [selectedEvent, setSelectedEvent] = React.useState<Shape>();
     const [selectedEventItem, setSelectedEventItem] = React.useState<IEventsCatalogItem>();
+    const [evtComponents, setEvtComponents] = React.useState<React.JSX.Element[]>([]);
 
-
+    React.useEffect(() => {
+        console.log('eventsCatalog changed:', eventsCatalog);
+        setEvtComponents(showingEvents.map(([eventName, catalogItem]) => (
+            <ListItemButton key={catalogItem.elementId} onClick={() => handleEventSelection(catalogItem)}>
+                <ListItemText
+                    primary={`Event: ${eventName}`}
+                    secondary={`ID: ${catalogItem.elementId}`}
+                />
+            </ListItemButton>)))
+    }, [eventsCatalog]);
 
     if (!eventsCatalog)
         return;
@@ -45,15 +48,6 @@ export default function EventsCatalog() {
         setSelectedEventItem(catalogItem);
         setOpen(true);
     }
-
-    const eventsComponents = showingEvents.map(([eventName, catalogItem]) => (
-        <ListItemButton key={eventName} onClick={() => handleEventSelection(catalogItem)}>
-            <ListItemText
-                primary={`Event: ${eventName}`}
-                secondary={`ID: ${catalogItem.elementId}`}
-            />
-        </ListItemButton>
-    ));
 
     const handleSearch = () => {
         if (!search) {
@@ -82,7 +76,7 @@ export default function EventsCatalog() {
                 }}
             />
             <List dense>
-                {eventsComponents}
+                {evtComponents}
             </List>
             <Modal
                 open={open}
