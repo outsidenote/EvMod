@@ -17,7 +17,7 @@ export default function ElementJsonData({ selectedElement }: { selectedElement: 
         if (!selectedElement)
             setJsonData({})
         else {
-            const elData = await selectedElement.getMetadata('jsonData') || {};
+            const elData = selectedElement.type !== 'frame' && await selectedElement.getMetadata('jsonData') || {};
             console.log('ElementJsonData: elData:', elData)
             setJsonData(elData)
         }
@@ -34,19 +34,21 @@ export default function ElementJsonData({ selectedElement }: { selectedElement: 
 
 
 
-    return (
-        <Box>
-            <JSONInput
-                id='a_unique_id'
-                placeholder={jsonData}
-                locale={locale}
-                width='100%'
-                height='300px'
-                onChange={async (e: any) => {
-                    setJsonData(e.jsObject);
-                }}
-            />
-            <Button variant="outlined" color="info" onClick={handleSave} disabled={saving}>Save</Button>
-        </Box>
-    )
+    if (!!selectedElement)
+        return (
+            <Box>
+                <JSONInput
+                    id='a_unique_id'
+                    placeholder={jsonData}
+                    locale={locale}
+                    width='100%'
+                    height='300px'
+                    onChange={async (e: any) => {
+                        setJsonData(e.jsObject);
+                    }}
+                />
+                <Button variant="outlined" color="info" onClick={handleSave} disabled={saving}>Save</Button>
+            </Box>
+        )
+    else return
 }
