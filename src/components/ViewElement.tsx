@@ -3,30 +3,40 @@ import { useState, useEffect } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
-import { IElementMetadata } from '../types/element.types';
+import { IElementMetadata, MiroElementType } from '../types/element.types';
 import { ELEMENT_METADTA_KEY } from '../consts';
+import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
+import SwimLaneData from './SwimLaneData';
 
 
 interface ISelectionHandlerInput {
-    items: Array<any>
+    items: MiroElementType[]
 }
 
 export default function ViewElement() {
-    let [selectedElement, setSelectedElement]: any = useState();
+    let [selectedElement, setSelectedElement] = useState<MiroElementType | undefined>();
     let [selecting, setSelecting]: any = useState(false);
     let [errMsg, setErrMsg] = useState('');
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
 
-    const setSelection = async (items: Array<any>) => {
+    const setSelection = async (items: MiroElementType[]) => {
         const element = items[0]
         console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
-        setElMetadata(await element.getMetadata(ELEMENT_METADTA_KEY) || undefined);
+
+        if (!['shape'].includes(element.type)) return;
+
+        const metadata = await (element as Shape | Frame).getMetadata(ELEMENT_METADTA_KEY);
+        if (metadata === undefined) {
+            setElMetadata(metadata);
+            return;
+        }
+        setElMetadata(metadata as unknown as IElementMetadata);
     }
 
     const clearSelection = () => {
         setErrMsg('');
-        setSelectedElement();
+        setSelectedElement(undefined);
         setElMetadata(undefined);
     }
 
@@ -46,12 +56,25 @@ export default function ViewElement() {
 
     const handleView = async () => {
         setSelecting(true);
-        const items = await miro.board.getSelection()
+        const items: MiroElementType[] = await miro.board.getSelection()
         await selectionHandler({ items });
         setSelecting(false);
     }
 
-    const isConnector = (): boolean => selectedElement?.type === "connector";
+    const getElementDetailsCompoennt = () => {
+        if (errMsg) return;
+
+        switch (selectedElement?.type) {
+            case "shape":
+                return <ElementJsonData selectedElement={selectedElement} />
+            case "connector":
+                return <CommandHandlerData />
+            case "frame":
+                return <SwimLaneData selectedElement={selectedElement as Frame} />
+            default:
+                return;
+        }
+    }
 
     useEffect(() => {
         // miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener added'));
@@ -73,13 +96,7 @@ export default function ViewElement() {
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
             {!!elMetadata && <h4><b>{elMetadata.elementType}:</b> {elMetadata.elementName}</h4>}
-            {
-                !errMsg && !isConnector() && <ElementJsonData selectedElement={selectedElement} />
-            }
-
-            {
-                !errMsg && isConnector() && <CommandHandlerData />
-            }
+            {getElementDetailsCompoennt()}
 
         </div>
     )
