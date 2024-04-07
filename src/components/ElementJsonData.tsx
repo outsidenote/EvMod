@@ -6,6 +6,7 @@ import locale from 'react-json-editor-ajrm/locale/en';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import { ELEMENT_DATA_KEY } from '../consts';
 
 
 export default function ElementJsonData({ selectedElement }: { selectedElement: any }) {
@@ -17,7 +18,7 @@ export default function ElementJsonData({ selectedElement }: { selectedElement: 
         if (!selectedElement)
             setJsonData({})
         else {
-            const elData = selectedElement.type !== 'frame' && await selectedElement.getMetadata('jsonData') || {};
+            const elData = selectedElement.type !== 'frame' && await selectedElement.getMetadata(ELEMENT_DATA_KEY) || {};
             console.log('ElementJsonData: elData:', elData)
             setJsonData(elData)
         }
@@ -26,7 +27,7 @@ export default function ElementJsonData({ selectedElement }: { selectedElement: 
     const handleSave = async () => {
         setSaving(true);
         console.log('saving json data');
-        await selectedElement.setMetadata('jsonData', jsonData)
+        await selectedElement.setMetadata(ELEMENT_DATA_KEY, jsonData)
         setSaving(false);
     };
 

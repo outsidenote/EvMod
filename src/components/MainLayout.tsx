@@ -6,27 +6,17 @@ import MuiDrawer from '@mui/material/Drawer';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import NavBar from './NavBar';
-
+import * as Immutable from 'immutable';
 
 import { Outlet } from "react-router-dom";
+import { eventsCatalog } from '../types/appStore.type';
+import { ElementTypeEnum } from '../types/element.types';
 
+export const Context = React.createContext<any>(undefined);
 
 export default function MainLayout() {
     const drawerWidth: number = 240;
-    // let mainListenerAdded = false;
-
-    // if (!mainListenerAdded) {
-    //     console.log('adding main listener');
-    //     const navigate = useNavigate();
-    //     miro.board.ui.on('selection:update', async (event) => {
-    //         if (event.items.length != 1)
-    //             return;
-    //         const { pathname } = useLocation();
-    //         if (pathname !== '/view-element')
-    //             navigate('/view-element');
-    //     });
-    //     mainListenerAdded = true;
-    // }
+    const [eventsCatalog, setEventsCatalog] = useState<eventsCatalog>(Immutable.Map({ 'a': { elementName: 'some name', elementId: "some id" } }));
 
 
     const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
@@ -60,27 +50,29 @@ export default function MainLayout() {
 
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
-            <Drawer variant="permanent" open={open}>
-                <NavBar />
-            </Drawer>
-            <Box
-                component="main"
-                sx={{
-                    backgroundColor: (theme) =>
-                        theme.palette.mode === 'light'
-                            ? theme.palette.grey[100]
-                            : theme.palette.grey[900],
-                    flexGrow: 1,
-                    height: '100vh',
-                    overflow: 'auto',
-                }}
-            >
-                <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                    <Outlet />
-                </Container>
+        <Context.Provider value={[eventsCatalog, setEventsCatalog]}>
+            <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                <Drawer variant="permanent" open={open}>
+                    <NavBar />
+                </Drawer>
+                <Box
+                    component="main"
+                    sx={{
+                        backgroundColor: (theme) =>
+                            theme.palette.mode === 'light'
+                                ? theme.palette.grey[100]
+                                : theme.palette.grey[900],
+                        flexGrow: 1,
+                        height: '100vh',
+                        overflow: 'auto',
+                    }}
+                >
+                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                        <Outlet />
+                    </Container>
+                </Box>
             </Box>
-        </Box>
+        </Context.Provider>
     );
 };
