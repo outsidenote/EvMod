@@ -1,90 +1,53 @@
 import * as React from 'react';
-import { useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import NavBar from './NavBar';
-import * as Immutable from 'immutable';
 
 import { Outlet } from "react-router-dom";
-import { EventsCatalogType, IEventsCatalogItem } from '../types/appStore.type';
-import { EVENTS_CATALOG_KEY, EVENT_IDS_CATALOG_KEY } from '../consts';
-import type { ItemsDeleteEvent, Shape } from '@mirohq/websdk-types';
+import type { ItemsDeleteEvent } from '@mirohq/websdk-types';
+import InMemoryStore from '../store/InMemoryStore';
+import { EvModElementTypeEnum } from '../types/element.types';
 
 type ContextType = [
-    EventsCatalogType | undefined,
-    Function | undefined,
-    Immutable.Map<string, string>,
-    Function | undefined
+    InMemoryStore
 ];
-const defaultContext: ContextType = [undefined, undefined, Immutable.Map<string, string>(), undefined];
+const defaultContext: ContextType = [new InMemoryStore()];
 export const Context = React.createContext<ContextType>(defaultContext);
 
 export default function MainLayout() {
-    const [eventsCatalog, _setEventsCatalog] = useState<EventsCatalogType>(Immutable.Map());
-    const [eventsIdsCatalog, _setEventsIdsCatalog] = useState<Immutable.Map<string, string>>(Immutable.Map())
-
-    const eventsIdsCatalogRef = React.useRef(eventsIdsCatalog);
-    const setEventsIdsCatalog = (data: Immutable.Map<string, string>) => {
-        eventsIdsCatalogRef.current = data;
-        _setEventsIdsCatalog(data);
-    };
-    const eventsCatalogRef = React.useRef(eventsCatalog);
-    const setEventsCatalog = (data: EventsCatalogType) => {
-        eventsCatalogRef.current = data;
-        _setEventsCatalog(data);
-    };
+    const store = new InMemoryStore();
 
     React.useEffect(() => {
         // Promise.all([
         //     miro.board.setAppData(EVENTS_CATALOG_KEY, undefined),
         //     miro.board.setAppData(EVENT_IDS_CATALOG_KEY, undefined)
         // ]);
-        miro.board.getAppData(EVENTS_CATALOG_KEY)
-            .then(catalogObj => {
-                const catalogMap: EventsCatalogType = catalogObj ? Immutable.Map<string, IEventsCatalogItem>(catalogObj) : Immutable.Map<string, IEventsCatalogItem>();
-                return catalogMap;
-            })
-            .then((catalogMap) => { setEventsCatalog(catalogMap) });
-        miro.board.getAppData(EVENT_IDS_CATALOG_KEY)
-            .then(idsObj => {
-                const idsMap: Immutable.Map<string, string> = idsObj ? Immutable.Map<string, string>(idsObj) : Immutable.Map<string, string>();
-                return idsMap;
-            })
-            .then((idsMap) => {
-                setEventsIdsCatalog(idsMap);
-                console.log('MainLayout: Ids catalog:', idsMap);
-            });
 
-        console.log('MainLaout: EventsIdsCatalog:', eventsIdsCatalog);
+        store.sync();
 
         miro.board.ui.on('items:delete', handleItemDeleted);
     }, []);
 
     const handleItemDeleted = async (event: ItemsDeleteEvent) => {
         console.log('MainLayout: DeletedItems:', event.items)
-        console.log('MainLayout: will check whether to delete from:', eventsIdsCatalogRef.current)
-        let updatedCatalog = eventsCatalogRef.current;
-        let updatedIds = eventsIdsCatalogRef.current;
-        let numDeletes = 0
         event.items.forEach(async ({ id }) => {
-            const eventName = updatedIds.get(id)
-            if (!eventName)
-                return
-            updatedCatalog = updatedCatalog.remove(eventName);
-            updatedIds = updatedIds.remove(id);
-            numDeletes++;
+            const elementTypes = Object.keys(EvModElementTypeEnum);
+            let elementType: EvModElementTypeEnum | undefined;
+
+            for (let i = 0; i < elementTypes.length; i++) {
+                const elementName = store.getElementName(elementTypes[i] as EvModElementTypeEnum, id);
+                if (!!elementName) {
+                    elementType = elementTypes[i] as EvModElementTypeEnum;
+                    break;
+                }
+            }
+            if (!elementType) return;
+
+            await store.delete(elementType, id);
         })
-        if (numDeletes > 0) {
-            setEventsCatalog(updatedCatalog);
-            setEventsIdsCatalog(updatedIds);
-            await Promise.all([
-                miro.board.setAppData(EVENTS_CATALOG_KEY, updatedCatalog.toObject()),
-                miro.board.setAppData(EVENT_IDS_CATALOG_KEY, updatedIds.toObject())
-            ]);
-        }
     }
 
     const drawerWidth: number = 240;
@@ -121,7 +84,7 @@ export default function MainLayout() {
 
 
     return (
-        <Context.Provider value={[eventsCatalog, setEventsCatalog, eventsIdsCatalog, setEventsIdsCatalog]}>
+        <Context.Provider value={[store]}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <Drawer variant="permanent" open={open}>

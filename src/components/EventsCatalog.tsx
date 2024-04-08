@@ -4,58 +4,80 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import TextField from '@mui/material/TextField';
-import { IEventsCatalogItem } from '../types/appStore.type';
 import Modal from '@mui/material/Modal';
 import ElementJsonData from './ElementJsonData';
 import { type Shape } from '@mirohq/websdk-types';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import { EvModElementTypeEnum } from '../types/element.types';
+import { IElementsStoreRecord } from '../store/ElementsStore';
+import { EvModeElementStoreEvent } from '../types/appStore.type';
 
 export default function EventsCatalog() {
     const [open, setOpen] = React.useState(false);
-    const [eventsCatalog, setEventsCatalog] = React.useContext(Context)
-    const [showingEvents, setShowingEvents] = React.useState(eventsCatalog?.toArray() || []);
+    const [store] = React.useContext(Context)
     const [search, setSearch] = React.useState('');
     const [selectedEvent, setSelectedEvent] = React.useState<Shape>();
-    const [selectedEventItem, setSelectedEventItem] = React.useState<IEventsCatalogItem>();
-    const [evtComponents, setEvtComponents] = React.useState<React.JSX.Element[]>([]);
+    const [selectedElement, setSelectedElement] = React.useState<IElementsStoreRecord>();
+    const [storedEvents, setStoredEvents] = React.useState(store.list(EvModElementTypeEnum.Event))
 
-    React.useEffect(() => {
-        console.log('eventsCatalog changed:', eventsCatalog);
-        setEvtComponents(showingEvents.map(([eventName, catalogItem]) => (
-            <ListItemButton key={catalogItem.elementId} onClick={() => handleEventSelection(catalogItem)}>
-                <ListItemText
-                    primary={`Event: ${eventName}`}
-                    secondary={`ID: ${catalogItem.elementId}`}
-                />
-            </ListItemButton>)))
-    }, [eventsCatalog]);
 
-    if (!eventsCatalog)
-        return;
+    const syncStoredEvents = () => {
+        const storedEvents = store.list(EvModElementTypeEnum.Event);
+        console.log('EventsCatalog: syncStoredEvents: storedEvents:', storedEvents)
+        setStoredEvents(storedEvents);
+    }
 
     const handleClose = () => {
         setOpen(false);
     }
 
-    const handleEventSelection = async (catalogItem: IEventsCatalogItem) => {
-        const el = await miro.board.getById(catalogItem.elementId);
+    const handleEventSelection = async (element: IElementsStoreRecord) => {
+        const el = await miro.board.getById(element.miroElementId);
         if (el.type !== 'shape')
             return;
 
         setSelectedEvent(el as Shape);
-        setSelectedEventItem(catalogItem);
+        setSelectedElement(element);
         setOpen(true);
     }
 
-    const handleSearch = () => {
-        if (!search) {
-            setShowingEvents(eventsCatalog.toArray());
-            return;
+    const showingEvents = React.useMemo(() => {
+        if (!search)
+            return storedEvents || [];
+        return search && storedEvents ?
+            storedEvents.filter(({ elementName }) => elementName.includes(search))
+            : []
+    }, [storedEvents, search]);
+
+    const eventsComponenets = React.useMemo(() => showingEvents.map((el) => (
+        <ListItemButton key={el.miroElementId} onClick={() => handleEventSelection(el)}>
+            <ListItemText
+                primary={`Event: ${el.elementName}`}
+                secondary={`ID: ${el.miroElementId}`}
+            />
+        </ListItemButton>)), [showingEvents])
+
+
+    React.useEffect(() => {
+        const handleChange = (event: EvModeElementStoreEvent) => {
+            console.log('EventsCatalog: store change. Checking... ')
+            if (event.elementType !== EvModElementTypeEnum.Event)
+                return;
+            console.log('EventsCatalog: events changed, syncing... ')
+            syncStoredEvents();
         }
-        setShowingEvents(eventsCatalog.toArray().filter(([eventName]) => eventName.includes(search)));
-    }
+        console.log('EventsCatalog: adding store listener')
+        store.onChange.on(handleChange)
+        syncStoredEvents();
+        return () => {
+            console.log('EventsCatalog: removing store listener')
+            store.onChange.off(handleChange);
+        }
+    }, []);
+
+
 
     return (
         <div>
@@ -69,14 +91,9 @@ export default function EventsCatalog() {
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                     setSearch(event.target.value);
                 }}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        handleSearch()
-                    }
-                }}
             />
             <List dense>
-                {evtComponents}
+                {eventsComponenets}
             </List>
             <Modal
                 open={open}
@@ -90,10 +107,10 @@ export default function EventsCatalog() {
                             Showing Data of:
                         </Typography>
                         <Typography variant="h5" component="div">
-                            Event: {selectedEventItem?.elementName}
+                            Event: {selectedElement?.elementName}
                         </Typography>
                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                            ID: {selectedEventItem?.elementId}
+                            ID: {selectedElement?.miroElementId}
                         </Typography>
                         <ElementJsonData selectedElement={selectedEvent} />
                     </CardContent>

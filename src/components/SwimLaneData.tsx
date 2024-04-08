@@ -4,6 +4,7 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import type { Frame } from '@mirohq/websdk-types';
+import { EvModElementTypeEnum } from '../types/element.types';
 
 
 interface ISwimLaneEvent {
@@ -13,16 +14,16 @@ interface ISwimLaneEvent {
 
 export default function SwimLaneData({ selectedElement }: { selectedElement: Frame | undefined }) {
     if (!selectedElement) return;
-    const [_, __, eventsIdsCatalog] = React.useContext(Context);
+    const [store] = React.useContext(Context);
     const [events, setEvents] = React.useState<Array<ISwimLaneEvent>>([]);
 
     React.useEffect(() => {
         const swimlaneEvents: Array<ISwimLaneEvent> = [];
-        selectedElement.childrenIds.forEach(id => {
-            const eventName = eventsIdsCatalog.get(id);
+        selectedElement.childrenIds.forEach(miroElementId => {
+            const eventName = store.getElementName(EvModElementTypeEnum.Event, miroElementId);
             if (!eventName) return;
 
-            swimlaneEvents.push({ eventName, id })
+            swimlaneEvents.push({ eventName, id: miroElementId })
         });
         setEvents(swimlaneEvents)
     }, []);
