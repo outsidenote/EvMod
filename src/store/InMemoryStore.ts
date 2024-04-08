@@ -18,20 +18,20 @@ export default class InMemoryStore implements IAppStore {
 
     private async commit() {
         return miro.board.setAppData(APP_STORE, JSON.stringify(Array.from(this.internalStore.entries())));
+        // return miro.board.setAppData(APP_STORE, JSON.stringify(Array.from(getEmptyStore().entries())));
     }
 
     async sync(): Promise<void> {
         const serializedAppData = await miro.board.getAppData(APP_STORE)
         this.internalStore = getEmptyStore();
-        if(!serializedAppData) return;
-        
-        console.log('InMemStore: sync: serializedAppData:', serializedAppData)
+        if (!serializedAppData) return;
+
         const entries: Array<[string, { store: Array<any> }]> = JSON.parse(serializedAppData);
-        entries.forEach(([elementType, {store}]) => {
+        entries.forEach(([elementType, { store }]) => {
             const elementStore = new ElementsStore(store);
             this.internalStore.set(elementType as EvModElementTypeEnum, elementStore);
         })
-        
+
         console.log('InMemStore: sync: internalStore:', this.internalStore)
 
     }
@@ -54,7 +54,6 @@ export default class InMemoryStore implements IAppStore {
     list(elementType: EvModElementTypeEnum): IElementsStoreRecord[] | undefined {
         const store = this.internalStore.get(elementType);
         if (!store) return;
-        console.log('InMemStore: store:', store)
         return (store as IElementsStore).list();
     }
 

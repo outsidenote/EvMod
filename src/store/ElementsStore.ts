@@ -24,7 +24,6 @@ export class ElementsStore implements IElementsStore {
     }
 
     list(): IElementsStoreRecord[] | undefined {
-        console.log('ElementStore: list: store:', this.store)
         return this.store;
     }
 
