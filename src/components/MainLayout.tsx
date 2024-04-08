@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 import NavBar from './NavBar';
 
 import { Outlet } from "react-router-dom";
-import type { ItemsDeleteEvent } from '@mirohq/websdk-types';
+import type { Connector, ItemsCreateEvent, ItemsDeleteEvent } from '@mirohq/websdk-types';
 import InMemoryStore from '../store/InMemoryStore';
 import { EvModElementTypeEnum } from '../types/element.types';
 
@@ -29,6 +29,7 @@ export default function MainLayout() {
         store.sync();
 
         miro.board.ui.on('items:delete', handleItemDeleted);
+        miro.board.ui.on('items:create', handleItemCreated);
     }, []);
 
     const handleItemDeleted = async (event: ItemsDeleteEvent) => {
@@ -47,6 +48,42 @@ export default function MainLayout() {
             if (!elementType) return;
 
             await store.delete(elementType, id);
+        })
+    }
+
+    const handleItemCreated = async (event: ItemsCreateEvent) => {
+        const connectors = event.items.filter(item => item.type === 'connector');
+        connectors.forEach(async (connector) => {
+            const conn = connector as Connector;
+            const { start, end } = conn
+
+            if (!start || !end) return;
+            const startId = start.item;
+            const endId = end.item;
+            if (!startId || !endId) return;
+
+            const [startCommand, endEvent, startEvent, endReadModel] = await Promise.all([
+                store.getElementName(EvModElementTypeEnum.Command, startId),
+                store.getElementName(EvModElementTypeEnum.Event, endId),
+                store.getElementName(EvModElementTypeEnum.Event, startId),
+                store.getElementName(EvModElementTypeEnum.ReadModel, endId)
+            ])
+
+            const connectorType: EvModElementTypeEnum | undefined = (startCommand && endEvent) ?
+                EvModElementTypeEnum.CommandHandler :
+                (
+                    startEvent && endReadModel ? EvModElementTypeEnum.Projector :
+                        undefined
+                )
+            if (!connectorType) return;
+
+            const connectorName: string = connectorType === EvModElementTypeEnum.CommandHandler ?
+                `Command Handler: ${startCommand} -> ${endEvent}` :
+                `Projector: ${startEvent} -> ${endReadModel}`;
+
+            await store.addElement(connectorType, conn.id, connectorName);
+            console.log('MainLayout: Added: connector:', connectorType, conn.id, connectorName);
+            console.log('MainLayout: connectors list:', store.list(connectorType));
         })
     }
 

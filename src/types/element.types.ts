@@ -1,4 +1,4 @@
-    import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
+import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
 
 export enum EvModElementTypeEnum {
     Command = "Command",
@@ -6,7 +6,9 @@ export enum EvModElementTypeEnum {
     ReadModel = "Read Model",
     Processor = "Processor",
     Screen = "Screen",
-    Swimlane = "Swimlane"
+    Swimlane = "Swimlane",
+    CommandHandler = "Command Handler",
+    Projector = "Projector"
 }
 
 export interface IEventData {
