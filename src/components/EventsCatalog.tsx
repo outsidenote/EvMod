@@ -25,8 +25,7 @@ export default function EventsCatalog() {
 
     const syncStoredEvents = () => {
         const storedEvents = store.list(EvModElementTypeEnum.Event);
-        console.log('EventsCatalog: syncStoredEvents: storedEvents:', storedEvents)
-        setStoredEvents(storedEvents);
+        setStoredEvents([...(storedEvents || [])]);
     }
 
     const handleClose = () => {
@@ -51,13 +50,15 @@ export default function EventsCatalog() {
             : []
     }, [storedEvents, search]);
 
-    const eventsComponenets = React.useMemo(() => showingEvents.map((el) => (
-        <ListItemButton key={el.miroElementId} onClick={() => handleEventSelection(el)}>
-            <ListItemText
-                primary={`Event: ${el.elementName}`}
-                secondary={`ID: ${el.miroElementId}`}
-            />
-        </ListItemButton>)), [showingEvents])
+    const eventsComponenets = React.useMemo(() => showingEvents.map((el) => {
+        return (
+            <ListItemButton key={el.miroElementId + showingEvents.length} onClick={() => handleEventSelection(el)}>
+                <ListItemText
+                    primary={`Event: ${el.elementName}`}
+                    secondary={`ID: ${el.miroElementId}`}
+                />
+            </ListItemButton>)
+    }), [showingEvents])
 
 
     React.useEffect(() => {
