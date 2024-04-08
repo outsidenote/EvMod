@@ -27,8 +27,8 @@ export default function ViewElement() {
         console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
 
-        if (!['shape', 'connector'].includes(element.type)) return;
-        const metadata = await (element as Shape | Frame).getMetadata(ELEMENT_METADATA_KEY);
+        if (!['shape', 'connector', 'image'].includes(element.type)) return;
+        const metadata = await (element as Shape | Frame | Image).getMetadata(ELEMENT_METADATA_KEY);
 
         console.log('ViewElement: metadata:', metadata)
         if (metadata) {

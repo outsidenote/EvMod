@@ -22,7 +22,7 @@ export default function ReadModelData({ selectedElement }: { selectedElement: Sh
         const readModelEvents: IElementsStoreRecord[] = (store.list(EvModElementTypeEnum.Projector) || [])
             .filter(({ elementName }) => elementName.endsWith(`-> ${readModelName}`))
             .map(projector => {
-                const elementName = projector.elementName.split(' ')[1]
+                const elementName = projector.elementName.split(' -> ')[0]
                 console.log('ReadModelData: projector eventName:', elementName);
                 if (!elementName) throw new Error('Event of Projector not found: ' + projector.elementName);
                 const miroElementId = store.getMiroElementId(EvModElementTypeEnum.Event, elementName);

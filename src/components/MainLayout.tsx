@@ -69,6 +69,8 @@ export default function MainLayout() {
                     const startEvent = store.getElementName(EvModElementTypeEnum.Event, startId);
                     const endReadModel = store.getElementName(EvModElementTypeEnum.ReadModel, endId);
 
+                    console.log('MainLayout: handleAddedConnectors:', { startCommand, endEvent, startEvent, endReadModel })
+
                     const connectorType: EvModElementTypeEnum | undefined = (startCommand && endEvent) ?
                         EvModElementTypeEnum.CommandHandler :
                         (
@@ -77,7 +79,7 @@ export default function MainLayout() {
                         )
                     if (!connectorType) return;
 
-                    const connectorName = `${startCommand} -> ${endEvent}`;
+                    const connectorName = `${startCommand || startEvent} -> ${endEvent || endReadModel}`;
 
                     await store.addElement(connectorType, conn.id, connectorName);
                     console.log('MainLayout: Added: connector:', connectorType, conn.id, connectorName);

@@ -9,7 +9,7 @@ import CogsIcon from './CogsIcon';
 import ScreenIcon from './ScreenIcon';
 import Crop169Icon from '@mui/icons-material/Crop169';
 import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
-import type { BoardInfo, Frame, Group, Shape } from '@mirohq/websdk-types';
+import type { BoardInfo, Frame, Group, Image, Shape } from '@mirohq/websdk-types';
 import { Context } from './MainLayout';
 import { IElementsStoreRecord } from '../store/ElementsStore';
 import { ELEMENT_METADATA_KEY } from '../consts';
@@ -98,27 +98,13 @@ export default function AddElement() {
         }
 
         else if (elementType == EvModElementTypeEnum.Processor) {
-            const recPromise = miro.board.createShape({
-                content: `<p>${elementName}</p>`,
-                shape: 'rectangle',
-                style: {
-                    color: getColor(),
-                    borderColor: '#1A1A1A',
-                    textAlignVertical: 'bottom'
-                },
-                x: 0, // Default value: center of the board
-                y: 0, // Default value: center of the board
-                width: 200,
-                height: 100,
-            })
-            const cogsPromise = miro.board.createImage({
-                title: 'This is an image',
+            return miro.board.createImage({
+                title: elementName,
                 url: `data:image/svg+xml;base64,${btoa(cogsIcon)}`,
                 width: 70, // Set either 'width', or 'height'
+                x: viewport.x + viewport.width / 2, // Default value: center of the board
+                y: viewport.y + viewport.height / 2, // Default value: center of the board
             })
-
-            const items = await Promise.all([recPromise, cogsPromise]);
-            return miro.board.group({ items })
         }
         else if (elementType == EvModElementTypeEnum.Swimlane) {
             return miro.board.createFrame({
@@ -126,8 +112,8 @@ export default function AddElement() {
                 style: {
                     fillColor: '#ffffff',
                 },
-                x: 0, // Default value: horizontal center of the board
-                y: 0, // Default value: vertical center of the board
+                x: viewport.x + viewport.width / 2, // Default value: center of the board
+                y: viewport.y + viewport.height / 2, // Default value: center of the board
                 width: 10000,
                 height: 400,
             });
@@ -136,10 +122,10 @@ export default function AddElement() {
         return;
     }
 
-    const addElementRecord = async (element: Shape | Frame | Group): Promise<string | undefined> => {
+    const addElementRecord = async (element: Shape | Frame | Image): Promise<string | undefined> => {
         if (!elementType)
             throw new Error('No Element Type');
-        console.log('AddElement: addElementRecord: elementType:', elementType)
+        console.log('AddElement: addElementRecord: elementType:', elementType, 'element id:', element.id, 'element name:', elementName)
         await store.addElement(elementType, element.id, elementName)
         return store.getMiroElementId(elementType, elementName);
     }
@@ -155,20 +141,20 @@ export default function AddElement() {
     }
 
     const addElementMetadata = async (originalMiroElementId: string, shape: MiroElementType) => {
-        if (!elementType) return;
+        if (!elementType || shape.type === 'frame') return;
         const metadata: IElementMetadata = {
             elementType,
             elementName,
             copyOf: originalMiroElementId !== shape.id ? originalMiroElementId : undefined
         }
-        if (![EvModElementTypeEnum.Event, EvModElementTypeEnum.Command, EvModElementTypeEnum.ReadModel].includes(elementType))
-            return;
-        await (shape as Shape).setMetadata(ELEMENT_METADATA_KEY, JSON.stringify(metadata));
+        console.log('AddElement: addE;e,emtMetadata: metadata:', metadata);
+        await (shape as Shape | Image).setMetadata(ELEMENT_METADATA_KEY, JSON.stringify(metadata));
     }
 
     const handleSubmit = async () => {
         const shape = await createShape();
         if (!shape) throw new Error('shape was not created');
+
         const originalMiroElementId = await addElementRecord(shape);
         console.log('AddElement: handleSubmit: shapeId:', shape.id, 'originalId:', originalMiroElementId)
         if (originalMiroElementId) {
