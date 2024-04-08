@@ -4,7 +4,7 @@ import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
 import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
-import { ELEMENT_METADTA_KEY } from '../consts';
+import { ELEMENT_METADATA_KEY } from '../consts';
 import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
 import { Context } from './MainLayout';
@@ -27,11 +27,12 @@ export default function ViewElement() {
         console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
 
-        if (!['shape'].includes(element.type)) return;
+        if (!['shape', 'connector'].includes(element.type)) return;
+        const metadata = await (element as Shape | Frame).getMetadata(ELEMENT_METADATA_KEY);
 
-        const metadata = await (element as Shape | Frame).getMetadata(ELEMENT_METADTA_KEY);
-        if (metadata === undefined) {
-            setElMetadata(metadata);
+        console.log('ViewElement: metadata:', metadata)
+        if (metadata) {
+            setElMetadata(JSON.parse(metadata.toString()));
             return;
         }
         setElMetadata(metadata as unknown as IElementMetadata);
@@ -65,17 +66,18 @@ export default function ViewElement() {
     }
 
     const getElementDetailsCompoennt = () => {
-        if (errMsg) return;
+        if (errMsg || !elMetadata) return;
 
-        switch (selectedElement?.type) {
-            case "shape":
-                if (store.getElementName(EvModElementTypeEnum.ReadModel, selectedElement.id))
-                    return <ReadModelData selectedElement={selectedElement as Shape} />
-                else
-                    return <ElementJsonData selectedElement={selectedElement} />
-            case "connector":
+        switch (elMetadata.elementType) {
+            case EvModElementTypeEnum.ReadModel:
+                return <ReadModelData selectedElement={selectedElement as Shape} />
+
+            case EvModElementTypeEnum.Event:
+            case EvModElementTypeEnum.Command:
+                return <ElementJsonData selectedElement={selectedElement} />
+            case EvModElementTypeEnum.CommandHandler:
                 return <CommandHandlerData />
-            case "frame":
+            case EvModElementTypeEnum.Swimlane:
                 return <SwimLaneData selectedElement={selectedElement as Frame} />
             default:
                 return;

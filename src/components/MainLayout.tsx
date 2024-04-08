@@ -9,7 +9,8 @@ import NavBar from './NavBar';
 import { Outlet } from "react-router-dom";
 import type { Connector, ItemsCreateEvent, ItemsDeleteEvent } from '@mirohq/websdk-types';
 import InMemoryStore from '../store/InMemoryStore';
-import { EvModElementTypeEnum } from '../types/element.types';
+import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
+import { ELEMENT_METADATA_KEY } from '../consts';
 
 type ContextType = [
     InMemoryStore
@@ -52,39 +53,45 @@ export default function MainLayout() {
     }
 
     const handleItemCreated = async (event: ItemsCreateEvent) => {
-        const connectors = event.items.filter(item => item.type === 'connector');
-        connectors.forEach(async (connector) => {
-            const conn = connector as Connector;
-            const { start, end } = conn
+        const handleAddedConnectors = async (items: MiroElementType[]) => {
+            event.items.filter(item => item.type === 'connector')
+                .forEach(async (connector) => {
+                    const conn = connector as Connector;
+                    const { start, end } = conn
 
-            if (!start || !end) return;
-            const startId = start.item;
-            const endId = end.item;
-            if (!startId || !endId) return;
+                    if (!start || !end) return;
+                    const startId = start.item;
+                    const endId = end.item;
+                    if (!startId || !endId) return;
 
-            const [startCommand, endEvent, startEvent, endReadModel] = await Promise.all([
-                store.getElementName(EvModElementTypeEnum.Command, startId),
-                store.getElementName(EvModElementTypeEnum.Event, endId),
-                store.getElementName(EvModElementTypeEnum.Event, startId),
-                store.getElementName(EvModElementTypeEnum.ReadModel, endId)
-            ])
+                    const startCommand = store.getElementName(EvModElementTypeEnum.Command, startId);
+                    const endEvent = store.getElementName(EvModElementTypeEnum.Event, endId);
+                    const startEvent = store.getElementName(EvModElementTypeEnum.Event, startId);
+                    const endReadModel = store.getElementName(EvModElementTypeEnum.ReadModel, endId);
 
-            const connectorType: EvModElementTypeEnum | undefined = (startCommand && endEvent) ?
-                EvModElementTypeEnum.CommandHandler :
-                (
-                    startEvent && endReadModel ? EvModElementTypeEnum.Projector :
-                        undefined
-                )
-            if (!connectorType) return;
+                    const connectorType: EvModElementTypeEnum | undefined = (startCommand && endEvent) ?
+                        EvModElementTypeEnum.CommandHandler :
+                        (
+                            startEvent && endReadModel ? EvModElementTypeEnum.Projector :
+                                undefined
+                        )
+                    if (!connectorType) return;
 
-            const connectorName: string = connectorType === EvModElementTypeEnum.CommandHandler ?
-                `Command Handler: ${startCommand} -> ${endEvent}` :
-                `Projector: ${startEvent} -> ${endReadModel}`;
+                    const connectorName = `${startCommand} -> ${endEvent}`;
 
-            await store.addElement(connectorType, conn.id, connectorName);
-            console.log('MainLayout: Added: connector:', connectorType, conn.id, connectorName);
-            console.log('MainLayout: connectors list:', store.list(connectorType));
-        })
+                    await store.addElement(connectorType, conn.id, connectorName);
+                    console.log('MainLayout: Added: connector:', connectorType, conn.id, connectorName);
+                    console.log('MainLayout: connectors list:', store.list(connectorType));
+                    const metadata: IElementMetadata = {
+                        elementName: connectorName,
+                        elementType: connectorType
+                    };
+                    conn.setMetadata(ELEMENT_METADATA_KEY, JSON.stringify(metadata));
+                })
+        }
+
+        await handleAddedConnectors(event.items);
+
     }
 
     const drawerWidth: number = 240;

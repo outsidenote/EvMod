@@ -22,6 +22,7 @@ export interface ICommandData {
 export interface IElementMetadata {
     elementName: string,
     elementType: EvModElementTypeEnum
+    copyOf?: string
 }
 
 export interface IElementData {
