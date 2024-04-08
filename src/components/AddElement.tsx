@@ -137,6 +137,7 @@ export default function AddElement() {
     const addElementRecord = async (element: Shape | Frame | Group): Promise<void> => {
         if (!elementType)
             throw new Error('No Element Type');
+        console.log('AddElement: addElementRecord: elementType:', elementType)
         await store.addElement(elementType, element.id, elementName)
     }
 

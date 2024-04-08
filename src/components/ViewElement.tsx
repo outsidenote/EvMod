@@ -3,10 +3,12 @@ import { useState, useEffect } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
-import { IElementMetadata, MiroElementType } from '../types/element.types';
+import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
 import { ELEMENT_METADTA_KEY } from '../consts';
 import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
+import { Context } from './MainLayout';
+import ReadModelData from './ReadModelData';
 
 
 interface ISelectionHandlerInput {
@@ -17,6 +19,7 @@ export default function ViewElement() {
     let [selectedElement, setSelectedElement] = useState<MiroElementType | undefined>();
     let [selecting, setSelecting]: any = useState(false);
     let [errMsg, setErrMsg] = useState('');
+    const [store] = React.useContext(Context);
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
 
     const setSelection = async (items: MiroElementType[]) => {
@@ -66,7 +69,10 @@ export default function ViewElement() {
 
         switch (selectedElement?.type) {
             case "shape":
-                return <ElementJsonData selectedElement={selectedElement} />
+                if (store.getElementName(EvModElementTypeEnum.ReadModel, selectedElement.id))
+                    return <ReadModelData selectedElement={selectedElement as Shape} />
+                else
+                    return <ElementJsonData selectedElement={selectedElement} />
             case "connector":
                 return <CommandHandlerData />
             case "frame":
@@ -75,19 +81,6 @@ export default function ViewElement() {
                 return;
         }
     }
-
-    useEffect(() => {
-        // miro.board.ui.on('selection:update', selectionHandler).then(l => console.log('listener added'));
-
-        // miro.board.getSelection().then((items: Array<any>) => {
-        //     selectionHandler({ items })
-        // })
-
-        // return () => {
-        //     miro.board.ui.off('selection:update', selectionHandler).then(l => console.log('listener removed'));
-        // }
-    }, []);
-
 
     return (
         <div>
