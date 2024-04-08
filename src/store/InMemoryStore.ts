@@ -1,6 +1,6 @@
 import type { Shape } from "@mirohq/websdk-types";
 import { APP_STORE, ELEMENT_PAYLOAD_KEY } from "../consts";
-import { EvModeElementStoreEventChangeTypeEnum, type EvModeElementStoreEvent, type IAppStore } from "../types/appStore.type";
+import { EvModeElementStoreEventChangeTypeEnum, type EvModeElementStoreEvent, type IAppStore } from "../types/appStore.types";
 import { EvModElementTypeEnum } from "../types/element.types";
 import { ElementsStore, IElementsStore, IElementsStoreRecord } from "./ElementsStore";
 import LiteEvent from "./LiteEvent";

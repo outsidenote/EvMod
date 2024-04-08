@@ -12,7 +12,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import { EvModElementTypeEnum } from '../types/element.types';
 import { IElementsStoreRecord } from '../store/ElementsStore';
-import { EvModeElementStoreEvent } from '../types/appStore.type';
+import { EvModeElementStoreEvent } from '../types/appStore.types';
 
 export default function EventsCatalog() {
     const [open, setOpen] = React.useState(false);
