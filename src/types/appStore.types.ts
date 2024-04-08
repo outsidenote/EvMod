@@ -1,4 +1,3 @@
-import Immutable from 'immutable'
 import {
     EvModElementTypeEnum,
 } from './element.types'
