@@ -3,6 +3,7 @@ export class ElementExistsError extends Error { }
 export interface IElementsStoreRecord {
     miroElementId: string,
     elementName: string,
+    originalMiroElementId?: string
 }
 
 export interface IElementsStore {
@@ -28,9 +29,10 @@ export class ElementsStore implements IElementsStore {
     }
 
     insertElement(record: IElementsStoreRecord): void {
-        if (this.store.some(({ elementName }) => elementName === record.elementName))
-            throw new ElementExistsError(record.elementName);
-        this.store.push(record);
+        // if (this.store.some(({ elementName }) => elementName === record.elementName))
+        // throw new ElementExistsError(record.elementName);
+        const originalMiroElementId = this.getMiroElementId(record.elementName);
+        this.store.push(Object.assign({}, record, { originalMiroElementId }));
     }
     deleteElement(miroElementId: string): void {
         const index = this.store.findIndex((record) => miroElementId === record.miroElementId)
@@ -42,7 +44,7 @@ export class ElementsStore implements IElementsStore {
         return result?.elementName;
     }
     getMiroElementId(elementName: string): string | undefined {
-        const result = this.store.find(record => record.elementName === elementName)
+        const result = this.store.find(record => record.elementName === elementName && !record.originalMiroElementId)
         return result?.miroElementId;
     }
 
