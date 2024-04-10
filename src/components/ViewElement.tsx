@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
@@ -7,19 +7,24 @@ import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../type
 import { ELEMENT_METADATA_KEY } from '../consts';
 import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
-import { Context } from './MainLayout';
 import ReadModelData from './ReadModelData';
 
+const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
 
 interface ISelectionHandlerInput {
     items: MiroElementType[]
+}
+
+const getMetadata = async (element: Shape | Frame | Image) => {
+    const metadataJson = await (element as Shape | Frame | Image).getMetadata(ELEMENT_METADATA_KEY);
+    if (!metadataJson) return;
+    return JSON.parse(metadataJson.toString()) as unknown as IElementMetadata;
 }
 
 export default function ViewElement() {
     let [selectedElement, setSelectedElement] = useState<MiroElementType | undefined>();
     let [selecting, setSelecting]: any = useState(false);
     let [errMsg, setErrMsg] = useState('');
-    const [store] = React.useContext(Context);
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
 
     const setSelection = async (items: MiroElementType[]) => {
@@ -27,15 +32,11 @@ export default function ViewElement() {
         console.log('ViewElement: selected element:', element)
         setSelectedElement(element);
 
-        if (!['shape', 'connector', 'image'].includes(element.type)) return;
-        const metadata = await (element as Shape | Frame | Image).getMetadata(ELEMENT_METADATA_KEY);
+        const metadata = miroItemTypesWithMetadata.includes(element.type) ?
+            await getMetadata(element as Shape | Frame | Image) : undefined;
 
         console.log('ViewElement: metadata:', metadata)
-        if (metadata) {
-            setElMetadata(JSON.parse(metadata.toString()));
-            return;
-        }
-        setElMetadata(metadata as unknown as IElementMetadata);
+        setElMetadata(metadata as unknown as IElementMetadata | undefined);
     }
 
     const clearSelection = () => {
@@ -52,8 +53,6 @@ export default function ViewElement() {
             setErrMsg('Please select a single element');
             return;
         }
-
-        // Filter sticky notes from the selected items
         setSelection(selectedItems);
 
     }
@@ -66,9 +65,12 @@ export default function ViewElement() {
     }
 
     const getElementDetailsCompoennt = () => {
-        if (errMsg || !elMetadata) return;
+        if (errMsg) return;
 
-        switch (elMetadata.elementType) {
+        console.log('getElementDetailsCompoennt: elMetadata?.elementType:', elMetadata?.elementType);
+        console.log('getElementDetailsCompoennt: selectedElement?.type:', selectedElement?.type);
+
+        switch (elMetadata?.elementType) {
             case EvModElementTypeEnum.ReadModel:
                 return <ReadModelData selectedElement={selectedElement as Shape} />
 
@@ -77,9 +79,9 @@ export default function ViewElement() {
                 return <ElementJsonData selectedElement={selectedElement} />
             case EvModElementTypeEnum.CommandHandler:
                 return <CommandHandlerData />
-            case EvModElementTypeEnum.Swimlane:
-                return <SwimLaneData selectedElement={selectedElement as Frame} />
             default:
+                if (selectedElement?.type === 'frame')
+                    return <SwimLaneData selectedElement={selectedElement as Frame} />
                 return;
         }
     }
