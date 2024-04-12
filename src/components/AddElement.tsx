@@ -226,16 +226,17 @@ export default function AddElement() {
                         onInputChange={(_event: any, newValue: string | null) => {
                             setElementName(newValue || '');
                         }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.defaultMuiPrevented = true;
+                                handleSubmit()
+                            }
+                        }}
                         sx={{ width: '100%', marginBottom: '20px' }}
                         renderOption={(props, option) => (<li {...props} key={option}>{option}</li>)}
                         renderInput={(params) => <TextField {...params}
                             label={"Name of " + elementType}
                             placeholder="Some Name"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    handleSubmit()
-                                }
-                            }}
                         />}
                     />
                     <Button variant="outlined" color="info" onClick={handleSubmit}>Create</Button>
