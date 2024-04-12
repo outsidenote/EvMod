@@ -3,14 +3,18 @@ import { useState } from "react";
 import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
-import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
+import { EvModElementTypeEnum, IElementData, IElementMetadata, MiroElementType } from '../types/element.types';
 import { ELEMENT_DATA_KEY, ELEMENT_METADATA_KEY } from '../consts';
-import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
+import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
 import ReadModelData from './ReadModelData';
 import { Context } from './MainLayout';
 
 const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
+
+export interface IElementDataSavedEvent {
+    detail: IElementData
+}
 
 interface ISelectionHandlerInput {
     items: MiroElementType[]
@@ -28,7 +32,24 @@ export default function ViewElement() {
     const [selecting, setSelecting]: any = useState(false);
     const [errMsg, setErrMsg] = useState('');
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
-    const [store] = React.useContext(Context)
+    const [elementData, setElementData] = useState<IElementData>();
+    const [saving, setSaving] = useState(false);
+
+    React.useEffect(() => {
+        const handleElementDataSaved = async (e: Event) => {
+            if (!originElement) return;
+            setSaving(true);
+            console.log('saving json data');
+            const data = (e as unknown as IElementDataSavedEvent).detail;
+            console.log('ViewElement: saving data:', data)
+            await (originElement as Shape | Image).setMetadata(ELEMENT_DATA_KEY, data as unknown as Json);
+            setSaving(false);
+        };
+        document.addEventListener("elementData:saved", handleElementDataSaved);
+        return () => {
+            document.removeEventListener("elementData:saved", handleElementDataSaved);
+        }
+    }, [])
 
     const setSelection = async (items: MiroElementType[]) => {
         const element = items[0]
@@ -42,14 +63,17 @@ export default function ViewElement() {
         setElMetadata(metadata as unknown as IElementMetadata | undefined);
 
 
-        if (!metadata?.copyOf) {
-            setOriginElement(element);
-            console.log('Viewelement: setSelection: This is originElement');
-        } else {
-            const originEl = await miro.board.getById(metadata.copyOf)
-            console.log('ViewElement: selecting another origin element with id:', originEl.id);
-            setOriginElement(originEl);
-        }
+        const originEl = !!metadata?.copyOf ?
+            await miro.board.getById(metadata.copyOf) :
+            element;
+        console.log('ViewElement: originElement:', originEl);
+        setOriginElement(originEl as MiroElementType);
+
+        if (!originEl) return;
+
+        const elData = originEl.type !== 'frame' && await (originEl as Shape | Image).getMetadata(ELEMENT_DATA_KEY) || {};
+        console.log('Viewelement:: element data:', elData);
+        setElementData(elData as unknown as IElementData);
     }
 
     const clearSelection = () => {
@@ -86,7 +110,7 @@ export default function ViewElement() {
 
             case EvModElementTypeEnum.Event:
             case EvModElementTypeEnum.Command:
-                return <ElementJsonData selectedElement={originElement} />
+                return <ElementJsonData data={elementData} readonly={saving} />
             case EvModElementTypeEnum.CommandHandler:
                 return <CommandHandlerData />
             default:

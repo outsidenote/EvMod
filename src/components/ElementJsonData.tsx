@@ -7,35 +7,23 @@ import locale from 'react-json-editor-ajrm/locale/en';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { ELEMENT_DATA_KEY } from '../consts';
+import { IElementData } from '../types/element.types';
 
 
-export default function ElementJsonData({ selectedElement }: { selectedElement: any }) {
-    const [jsonData, setJsonData] = useState({})
-    const [saving, setSaving] = useState(false);
-
-    const setSelection = async () => {
-        console.log('ElementJsonData: setting selection:', selectedElement)
-        if (!selectedElement)
-            setJsonData({})
-        else {
-            const elData = selectedElement.type !== 'frame' && await selectedElement.getMetadata(ELEMENT_DATA_KEY) || {};
-            console.log('ElementJsonData: elData:', elData)
-            setJsonData(elData)
-        }
-    }
+export default function ElementJsonData({ data, readonly }: { data: IElementData | undefined, readonly: boolean }) {
+    const [jsonData, setJsonData] = useState<IElementData>();
+    React.useEffect(() => {
+        console.log('ElementJsonData: data:', data)
+        setJsonData(data);
+    }, [data]);
 
     const handleSave = async () => {
-        setSaving(true);
-        console.log('saving json data');
-        await selectedElement.setMetadata(ELEMENT_DATA_KEY, jsonData)
-        setSaving(false);
+        const elementDataSavedEvent = new CustomEvent("elementData:saved", { detail: jsonData });
+        document.dispatchEvent(elementDataSavedEvent);
     };
 
-    useEffect(() => { setSelection() }, [selectedElement]);
 
-
-
-    if (!!selectedElement)
+    if (!!data)
         return (
             <Box>
                 <JSONInput
@@ -48,7 +36,7 @@ export default function ElementJsonData({ selectedElement }: { selectedElement: 
                         setJsonData(e.jsObject);
                     }}
                 />
-                <Button variant="outlined" color="info" onClick={handleSave} disabled={saving}>Save</Button>
+                <Button variant="outlined" color="info" onClick={handleSave} disabled={readonly}>Save</Button>
             </Box>
         )
     else return
