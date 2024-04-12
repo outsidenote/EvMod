@@ -4,10 +4,11 @@ import CommandHandlerData from './CommandHandlerData';
 import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
 import { EvModElementTypeEnum, IElementMetadata, MiroElementType } from '../types/element.types';
-import { ELEMENT_METADATA_KEY } from '../consts';
+import { ELEMENT_DATA_KEY, ELEMENT_METADATA_KEY } from '../consts';
 import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
 import ReadModelData from './ReadModelData';
+import { Context } from './MainLayout';
 
 const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
 
@@ -22,10 +23,12 @@ const getMetadata = async (element: Shape | Frame | Image) => {
 }
 
 export default function ViewElement() {
-    let [selectedElement, setSelectedElement] = useState<MiroElementType | undefined>();
-    let [selecting, setSelecting]: any = useState(false);
-    let [errMsg, setErrMsg] = useState('');
+    const [selectedElement, setSelectedElement] = useState<MiroElementType | undefined>();
+    const [originElement, setOriginElement] = useState<MiroElementType | undefined>();
+    const [selecting, setSelecting]: any = useState(false);
+    const [errMsg, setErrMsg] = useState('');
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
+    const [store] = React.useContext(Context)
 
     const setSelection = async (items: MiroElementType[]) => {
         const element = items[0]
@@ -37,6 +40,16 @@ export default function ViewElement() {
 
         console.log('ViewElement: metadata:', metadata)
         setElMetadata(metadata as unknown as IElementMetadata | undefined);
+
+
+        if (!metadata?.copyOf) {
+            setOriginElement(element);
+            console.log('Viewelement: setSelection: This is originElement');
+        } else {
+            const originEl = await miro.board.getById(metadata.copyOf)
+            console.log('ViewElement: selecting another origin element with id:', originEl.id);
+            setOriginElement(originEl);
+        }
     }
 
     const clearSelection = () => {
@@ -67,21 +80,18 @@ export default function ViewElement() {
     const getElementDetailsCompoennt = () => {
         if (errMsg) return;
 
-        console.log('getElementDetailsCompoennt: elMetadata?.elementType:', elMetadata?.elementType);
-        console.log('getElementDetailsCompoennt: selectedElement?.type:', selectedElement?.type);
-
         switch (elMetadata?.elementType) {
             case EvModElementTypeEnum.ReadModel:
-                return <ReadModelData selectedElement={selectedElement as Shape} />
+                return <ReadModelData selectedElement={originElement as Shape} />
 
             case EvModElementTypeEnum.Event:
             case EvModElementTypeEnum.Command:
-                return <ElementJsonData selectedElement={selectedElement} />
+                return <ElementJsonData selectedElement={originElement} />
             case EvModElementTypeEnum.CommandHandler:
                 return <CommandHandlerData />
             default:
                 if (selectedElement?.type === 'frame')
-                    return <SwimLaneData selectedElement={selectedElement as Frame} />
+                    return <SwimLaneData selectedElement={originElement as Frame} />
                 return;
         }
     }
@@ -92,6 +102,8 @@ export default function ViewElement() {
             <p>Select an emelemnt in the board to see its data and click the 'View Element' button</p>
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
+            <hr />
+            {/* {!!elMetadata?.copyOf && <Button variant="outlined" color="info" onClick={() => { }} disabled={false}>Set as Origin</Button>} */}
             {!!elMetadata && <h4><b>{elMetadata.elementType}:</b> {elMetadata.elementName}</h4>}
             {getElementDetailsCompoennt()}
 
