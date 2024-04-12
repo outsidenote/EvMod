@@ -5,9 +5,12 @@ import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
 import { EvModElementTypeEnum, IElementData, IElementMetadata, MiroElementType } from '../types/element.types';
 import { ELEMENT_DATA_KEY, ELEMENT_METADATA_KEY } from '../consts';
-import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json, SelectionUpdateEvent } from "@mirohq/websdk-types";
+import { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json, SelectionUpdateEvent } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
 import ReadModelData from './ReadModelData';
+import { Context } from './MainLayout';
+import { setElementLink, unsetElementLink } from '../utils';
+import { IElementsStoreRecord } from '../store/ElementsStore';
 
 const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
 
@@ -33,6 +36,8 @@ export default function ViewElement() {
     const [elMetadata, setElMetadata] = useState<IElementMetadata>();
     const [elementData, setElementData] = useState<IElementData>();
     const [saving, setSaving] = useState(false);
+    const [settingNewOrigin, setSettingNewOrigin] = useState<boolean>(false);
+    const [store] = React.useContext(Context);
 
     React.useEffect(() => {
         const handleElementDataSaved = async (e: Event) => {
@@ -131,6 +136,72 @@ export default function ViewElement() {
         }
     }
 
+    const handleSetAsOrigin = async () => {
+        setSettingNewOrigin(true);
+        try {
+            const { copyOf, elementType } = elMetadata || {};
+            if (!copyOf) return;
+            const currentOriginElemnt = await miro.board.getById(copyOf);
+            if (!currentOriginElemnt) throw new Error('current origin was not found on board.');
+            if (!miroItemTypesWithMetadata.includes(currentOriginElemnt.type)) return;
+
+            let newOriginRecord: IElementsStoreRecord | undefined;
+            let currentOriginRecord: IElementsStoreRecord | undefined;
+            const copies: IElementsStoreRecord[] = [];
+
+            store.list(elementType as EvModElementTypeEnum)
+                ?.forEach(record => {
+                    if (record.miroElementId === copyOf)
+                        return currentOriginRecord = record;
+                    else if (record.miroElementId === selectedElement?.id)
+                        return newOriginRecord = record;
+                    else if (record.originalMiroElementId === copyOf)
+                        return copies.push(record);
+                    return;
+                });
+
+            if (!newOriginRecord || !currentOriginRecord) throw new Error('not enough records found.');
+
+            console.log('>> newOriginRecord:', newOriginRecord, 'currentOriginRecord:', currentOriginRecord, 'copies:', copies);
+
+            await Promise.all([
+                (selectedElement as Shape).setMetadata(ELEMENT_DATA_KEY, elementData as unknown as Json),
+                (currentOriginElemnt as Shape).setMetadata(ELEMENT_DATA_KEY, {})
+            ]);
+
+            newOriginRecord.originalMiroElementId = undefined;
+            currentOriginRecord.originalMiroElementId = newOriginRecord.miroElementId;
+            copies.forEach(record => record.originalMiroElementId = newOriginRecord?.miroElementId);
+
+            const updateNewOriginMetadata = async () => {
+                const metadata = elMetadata;
+                if (metadata) metadata.copyOf = undefined;
+                setElMetadata(metadata);
+                return (selectedElement as Shape).setMetadata(ELEMENT_METADATA_KEY, JSON.stringify(metadata));
+            }
+
+            await Promise.all([
+                unsetElementLink(selectedElement as Shape),
+                setElementLink(currentOriginElemnt as Shape, newOriginRecord.miroElementId),
+                updateNewOriginMetadata(),
+                ...[...copies, currentOriginRecord].map(record => miro.board.getById(record.miroElementId)
+                    .then(el => Promise.all([
+                        setElementLink(el as Shape, newOriginRecord?.miroElementId),
+                        (el as Shape).getMetadata(ELEMENT_METADATA_KEY)
+                            .then(metadataStr => {
+                                const metadata: IElementMetadata = JSON.parse(metadataStr as string);
+                                metadata.copyOf = newOriginRecord?.miroElementId;
+                                return (el as Shape).setMetadata(ELEMENT_METADATA_KEY, JSON.stringify(metadata))
+                            })
+                    ]))
+                )
+            ]);
+        } finally {
+            setSettingNewOrigin(false);
+        }
+
+    };
+
     return (
         <div>
             <h1>View Element</h1>
@@ -138,7 +209,7 @@ export default function ViewElement() {
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
             <hr />
-            {/* {!!elMetadata?.copyOf && <Button variant="outlined" color="info" onClick={() => { }} disabled={false}>Set as Origin</Button>} */}
+            {!!elMetadata?.copyOf && <Button variant="outlined" color="info" onClick={handleSetAsOrigin} disabled={settingNewOrigin}>Set as Origin</Button>}
             {!!elMetadata && <h4><b>{elMetadata.elementType}:</b> {elMetadata.elementName}</h4>}
             {getElementDetailsCompoennt()}
 
