@@ -5,10 +5,9 @@ import ElementJsonData from './ElementJsonData';
 import Button from '@mui/material/Button';
 import { EvModElementTypeEnum, IElementData, IElementMetadata, MiroElementType } from '../types/element.types';
 import { ELEMENT_DATA_KEY, ELEMENT_METADATA_KEY } from '../consts';
-import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json } from "@mirohq/websdk-types";
+import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json, SelectionUpdateEvent } from "@mirohq/websdk-types";
 import SwimLaneData from './SwimLaneData';
 import ReadModelData from './ReadModelData';
-import { Context } from './MainLayout';
 
 const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
 
@@ -90,7 +89,18 @@ export default function ViewElement() {
             setErrMsg('Please select a single element');
             return;
         }
+        const selectionUpdateHandler = async (event: SelectionUpdateEvent) => {
+            const newSelectedItems = event.items;
+            if (newSelectedItems.length !== 1 || newSelectedItems[0].id !== selectedItems[0].id) {
+                clearSelection();
+                miro.board.ui.off('selection:update', selectionUpdateHandler);
+                console.log('unsubscribed to selection event. SelectedElement.id', selectedItems[0].id)
+            }
+
+        }
         setSelection(selectedItems);
+        miro.board.ui.on('selection:update', selectionUpdateHandler);
+        console.log('subscribed to selection event. SelectedElement.id', selectedItems[0].id)
 
     }
 
@@ -99,6 +109,7 @@ export default function ViewElement() {
         const items: MiroElementType[] = await miro.board.getSelection()
         await selectionHandler({ items });
         setSelecting(false);
+
     }
 
     const getElementDetailsCompoennt = () => {
