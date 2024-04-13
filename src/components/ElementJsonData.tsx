@@ -19,6 +19,7 @@ export default function ElementJsonData({ data, readonly }: { data: IElementData
 
     const handleSave = async () => {
         const elementDataSavedEvent = new CustomEvent("elementData:saved", { detail: jsonData });
+        console.log('dispatching element data saved event:', elementDataSavedEvent);
         document.dispatchEvent(elementDataSavedEvent);
     };
 

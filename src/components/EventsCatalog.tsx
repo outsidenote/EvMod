@@ -10,9 +10,10 @@ import { type Shape } from '@mirohq/websdk-types';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import { EvModElementTypeEnum } from '../types/element.types';
+import { EvModElementTypeEnum, IElementData } from '../types/element.types';
 import { IElementsStoreRecord } from '../store/ElementsStore';
 import { EvModeElementStoreEvent } from '../types/appStore.types';
+import { ELEMENT_DATA_KEY } from '../consts';
 
 export default function EventsCatalog() {
     const [open, setOpen] = React.useState(false);
@@ -20,6 +21,7 @@ export default function EventsCatalog() {
     const [search, setSearch] = React.useState('');
     const [selectedEvent, setSelectedEvent] = React.useState<Shape>();
     const [selectedElement, setSelectedElement] = React.useState<IElementsStoreRecord>();
+    const [eventData, setEventData] = React.useState<IElementData>();
     const [storedEvents, setStoredEvents] = React.useState(store.list(EvModElementTypeEnum.Event))
 
 
@@ -38,6 +40,8 @@ export default function EventsCatalog() {
             return;
 
         setSelectedEvent(el as Shape);
+        const dataJson = (await (el as Shape).getMetadata(ELEMENT_DATA_KEY));
+        setEventData(dataJson as unknown as IElementData);
         setSelectedElement(element);
         setOpen(true);
     }
@@ -113,7 +117,7 @@ export default function EventsCatalog() {
                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
                             ID: {selectedElement?.miroElementId}
                         </Typography>
-                        <ElementJsonData selectedElement={selectedEvent} />
+                        <ElementJsonData data={eventData} readonly={true} />
                     </CardContent>
                 </Card>
             </Modal>

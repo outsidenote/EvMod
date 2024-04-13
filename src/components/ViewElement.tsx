@@ -39,21 +39,28 @@ export default function ViewElement() {
     const [settingNewOrigin, setSettingNewOrigin] = useState<boolean>(false);
     const [store] = React.useContext(Context);
 
-    React.useEffect(() => {
-        const handleElementDataSaved = async (e: Event) => {
+    const handleElementDataSaved = (originalElement: MiroElementType | undefined) => {
+        console.log('building handler with originElement:', originElement)
+        return async (e: Event) => {
+            console.log('received dispatch, originElement:', originElement)
             if (!originElement) return;
+            console.log('go origin element')
             setSaving(true);
             console.log('saving json data');
             const data = (e as unknown as IElementDataSavedEvent).detail;
             console.log('ViewElement: saving data:', data)
             await (originElement as Shape | Image).setMetadata(ELEMENT_DATA_KEY, data as unknown as Json);
             setSaving(false);
-        };
-        document.addEventListener("elementData:saved", handleElementDataSaved);
-        return () => {
-            document.removeEventListener("elementData:saved", handleElementDataSaved);
         }
-    }, [])
+    };
+
+    React.useEffect(() => {
+        const handler = handleElementDataSaved(originElement)
+        document.addEventListener("elementData:saved", handler);
+        return () => {
+            document.removeEventListener("elementData:saved", handler);
+        }
+    }, [originElement])
 
     const setSelection = async (items: MiroElementType[]) => {
         const element = items[0]
