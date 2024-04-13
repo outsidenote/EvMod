@@ -11,11 +11,16 @@ import ReadModelData from './ReadModelData';
 import { Context } from './MainLayout';
 import { setElementLink, unsetElementLink } from '../utils';
 import { IElementsStoreRecord } from '../store/ElementsStore';
+import ElementCopies from './ElementCopies';
 
 const miroItemTypesWithMetadata = ['shape', 'connector', 'image'];
 
 export interface IElementDataSavedEvent {
     detail: IElementData
+}
+
+export interface ICopyElementSelectedEvent {
+    detail: IElementsStoreRecord
 }
 
 interface ISelectionHandlerInput {
@@ -40,13 +45,9 @@ export default function ViewElement() {
     const [store] = React.useContext(Context);
 
     const handleElementDataSaved = (originalElement: MiroElementType | undefined) => {
-        console.log('building handler with originElement:', originElement)
         return async (e: Event) => {
-            console.log('received dispatch, originElement:', originElement)
             if (!originElement) return;
-            console.log('go origin element')
             setSaving(true);
-            console.log('saving json data');
             const data = (e as unknown as IElementDataSavedEvent).detail;
             console.log('ViewElement: saving data:', data)
             await (originElement as Shape | Image).setMetadata(ELEMENT_DATA_KEY, data as unknown as Json);
@@ -54,13 +55,36 @@ export default function ViewElement() {
         }
     };
 
+    const handleCopyElementSelected = async (e: Event) => {
+        const record = (e as unknown as ICopyElementSelectedEvent).detail;
+        const element = await miro.board.getById(record.miroElementId);
+        await miro.board.ui.off('selection:update', selectionUpdateHandler);
+        const selectedItems = await miro.board.getSelection();
+        selectedItems.length && await miro.board.deselect({ id: selectedItems.map(({ id }) => id) });
+        await miro.board.select({ id: element.id });
+        await miro.board.viewport.zoomTo(element);
+        await selectionHandler({ items: [element] });
+    }
+
     React.useEffect(() => {
         const handler = handleElementDataSaved(originElement)
         document.addEventListener("elementData:saved", handler);
+        document.addEventListener("copyElement:selected", handleCopyElementSelected);
         return () => {
             document.removeEventListener("elementData:saved", handler);
+            document.removeEventListener("copyElement:selected", handleCopyElementSelected);
         }
     }, [originElement])
+
+    const selectionUpdateHandler = React.useMemo(() => async (event: SelectionUpdateEvent) => {
+        if (!selectedElement) return;
+        const newSelectedItems = event.items;
+        if (newSelectedItems.length !== 1 || newSelectedItems[0].id !== selectedElement.id) {
+            clearSelection();
+            await miro.board.ui.off('selection:update', selectionUpdateHandler);
+            console.log('unsubscribed to selection event. SelectedElement.id', selectedElement.id)
+        }
+    }, [selectedElement]);
 
     const setSelection = async (items: MiroElementType[]) => {
         const element = items[0]
@@ -85,7 +109,16 @@ export default function ViewElement() {
         const elData = originEl.type !== 'frame' && await (originEl as Shape | Image).getMetadata(ELEMENT_DATA_KEY) || {};
         console.log('Viewelement:: element data:', elData);
         setElementData(elData as unknown as IElementData);
+
+
     }
+
+    React.useEffect(() => {
+        if (!selectedElement) return;
+        miro.board.ui.on('selection:update', selectionUpdateHandler).then(() => {
+            console.log('subscribed to selection event.', 'selectedElement?.id:', selectedElement.id);
+        });
+    }, [selectedElement]);
 
     const clearSelection = () => {
         setErrMsg('');
@@ -101,19 +134,8 @@ export default function ViewElement() {
             setErrMsg('Please select a single element');
             return;
         }
-        const selectionUpdateHandler = async (event: SelectionUpdateEvent) => {
-            const newSelectedItems = event.items;
-            if (newSelectedItems.length !== 1 || newSelectedItems[0].id !== selectedItems[0].id) {
-                clearSelection();
-                miro.board.ui.off('selection:update', selectionUpdateHandler);
-                console.log('unsubscribed to selection event. SelectedElement.id', selectedItems[0].id)
-            }
 
-        }
         setSelection(selectedItems);
-        miro.board.ui.on('selection:update', selectionUpdateHandler);
-        console.log('subscribed to selection event. SelectedElement.id', selectedItems[0].id)
-
     }
 
     const handleView = async () => {
@@ -169,8 +191,6 @@ export default function ViewElement() {
 
             if (!newOriginRecord || !currentOriginRecord) throw new Error('not enough records found.');
 
-            console.log('>> newOriginRecord:', newOriginRecord, 'currentOriginRecord:', currentOriginRecord, 'copies:', copies);
-
             await Promise.all([
                 (selectedElement as Shape).setMetadata(ELEMENT_DATA_KEY, elementData as unknown as Json),
                 (currentOriginElemnt as Shape).setMetadata(ELEMENT_DATA_KEY, {})
@@ -216,6 +236,7 @@ export default function ViewElement() {
             <p style={{ color: "var(--red800)" }}><small>{errMsg}</small></p>
             <Button variant="outlined" color="info" onClick={handleView} disabled={selecting}>View Element</Button>
             <hr />
+            {elMetadata?.elementType && selectedElement && <ElementCopies metadata={elMetadata} elementId={selectedElement.id} />}
             {!!elMetadata?.copyOf && <Button variant="outlined" color="info" onClick={handleSetAsOrigin} disabled={settingNewOrigin}>Set as Origin</Button>}
             {!!elMetadata && <h4><b>{elMetadata.elementType}:</b> {elMetadata.elementName}</h4>}
             {getElementDetailsCompoennt()}
