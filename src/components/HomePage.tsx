@@ -49,6 +49,7 @@ export default function HomePage() {
         }
 
         const elemntTypeScanPromisesChain = Object.keys(EvModElementTypeEnum)
+            .map(key => EvModElementTypeEnum[key as keyof typeof EvModElementTypeEnum])
             .reduce((chain, elementType) => chain.then(() => handleElementTypeScan(elementType as EvModElementTypeEnum))
                 , Promise.resolve());
 
