@@ -24,10 +24,12 @@ export interface IAppStore {
     getElementName(elementType: EvModElementTypeEnum, miroElementId: string): string | undefined
     getMiroElementId(elementType: EvModElementTypeEnum, elementName: string): string | undefined
     getElementPayload(elementType: EvModElementTypeEnum, miroElementId: string): any | undefined
+    getById(elementType: EvModElementTypeEnum, miroElementId: string): IElementsStoreRecord | undefined
 
     delete(elementType: EvModElementTypeEnum, miroElementId: string): any | undefined
 
-    list(elementType: EvModElementTypeEnum): IElementsStoreRecord[] | undefined
+    list(elementType: EvModElementTypeEnum): IElementsStoreRecord[]
+    listCopies(elementType: EvModElementTypeEnum, miroElementId: string): IElementsStoreRecord[]
 
     onChange: ILiteEvent<EvModeElementStoreEvent>
 }

@@ -19,7 +19,7 @@ export default function ReadModelData({ selectedElement }: { selectedElement: Sh
         setEvents([]);
         const readModelName = store.getElementName(EvModElementTypeEnum.ReadModel, selectedElement.id)
         if (!readModelName) return;
-        const readModelEvents: IElementsStoreRecord[] = (store.list(EvModElementTypeEnum.Projector) || [])
+        const readModelEvents: IElementsStoreRecord[] = store.list(EvModElementTypeEnum.Projector)
             .filter(({ elementName }) => elementName.endsWith(`-> ${readModelName}`))
             .map(projector => {
                 const elementName = projector.elementName.split(' -> ')[0]

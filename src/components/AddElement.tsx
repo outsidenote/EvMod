@@ -30,10 +30,6 @@ export default function AddElement() {
             return;
         }
         const elementsList = store.list(elementType)
-        if (!elementsList) {
-            setElementNames([]);
-            return;
-        }
         setElementNames(elementsList
             .filter(el => !el.originalMiroElementId)
             .map(({ elementName }) => elementName)

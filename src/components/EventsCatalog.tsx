@@ -26,7 +26,7 @@ export default function EventsCatalog() {
 
 
     const syncStoredEvents = () => {
-        const storedEvents = store.list(EvModElementTypeEnum.Event)?.filter((el) => !el.originalMiroElementId);
+        const storedEvents = store.list(EvModElementTypeEnum.Event).filter((el) => !el.originalMiroElementId);
         setStoredEvents([...(storedEvents || [])]);
     }
 

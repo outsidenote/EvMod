@@ -13,6 +13,16 @@ const getEmptyStore = (): InternalStoreType => new Map(
 )
 
 export default class InMemoryStore implements IAppStore {
+    getById(elementType: EvModElementTypeEnum, miroElementId: string): IElementsStoreRecord | undefined {
+        const store = this.internalStore.get(elementType);
+        if (!store) return;
+        return store.getById(miroElementId);
+    }
+    listCopies(elementType: EvModElementTypeEnum, miroElementId: string): IElementsStoreRecord[] {
+        const store = this.internalStore.get(elementType);
+        if (!store) return [];
+        return store.listCopies(miroElementId);
+    }
     private internalStore: InternalStoreType = new Map<EvModElementTypeEnum, IElementsStore>();
     private readonly onChangeHandlers = new LiteEvent<EvModeElementStoreEvent>();
 
@@ -51,9 +61,9 @@ export default class InMemoryStore implements IAppStore {
         });
     }
 
-    list(elementType: EvModElementTypeEnum): IElementsStoreRecord[] | undefined {
+    list(elementType: EvModElementTypeEnum): IElementsStoreRecord[] {
         const store = this.internalStore.get(elementType);
-        if (!store) return;
+        if (!store) return [];
         return (store as IElementsStore).list();
     }
 

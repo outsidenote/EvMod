@@ -7,11 +7,13 @@ export interface IElementsStoreRecord {
 }
 
 export interface IElementsStore {
-    list(): IElementsStoreRecord[] | undefined
+    list(): IElementsStoreRecord[]
     getElementName(miroElementId: string): string | undefined
     getMiroElementId(elementName: string): string | undefined
     insertElement(record: IElementsStoreRecord): void
     deleteElement(elementName: string): void
+    listCopies(miroElementId: string): IElementsStoreRecord[]
+    getById(miroElementId: string): IElementsStoreRecord | undefined
 }
 
 
@@ -22,9 +24,16 @@ export class ElementsStore implements IElementsStore {
     constructor(store?: IElementsStoreRecord[]) {
         this.store = store || []
     }
+    getById(miroElementId: string): IElementsStoreRecord | undefined {
+        const result = this.list().filter(el => el.miroElementId === miroElementId);
+        return result.length ? result[0] : undefined;
+    }
+    listCopies(miroElementId: string): IElementsStoreRecord[] {
+        return this.list().filter(el => el.originalMiroElementId === miroElementId);
+    }
 
-    list(): IElementsStoreRecord[] | undefined {
-        return this.store;
+    list(): IElementsStoreRecord[] {
+        return this.store || [];
     }
 
     insertElement(record: IElementsStoreRecord): void {

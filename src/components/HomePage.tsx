@@ -15,7 +15,6 @@ export default function HomePage() {
 
         const handleElementTypeScan = async (elementType: EvModElementTypeEnum) => {
             const records = store.list(elementType);
-            if (!records) return;
             console.log('starting scan for:', elementType, 'store:', records);
             await new Promise((resolve, reject) => {
                 handleIdScan(records, 0, elementType, resolve, reject)

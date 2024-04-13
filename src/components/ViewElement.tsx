@@ -157,7 +157,7 @@ export default function ViewElement() {
             const copies: IElementsStoreRecord[] = [];
 
             store.list(elementType as EvModElementTypeEnum)
-                ?.forEach(record => {
+                .forEach(record => {
                     if (record.miroElementId === copyOf)
                         return currentOriginRecord = record;
                     else if (record.miroElementId === selectedElement?.id)
