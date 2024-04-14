@@ -1,19 +1,8 @@
 import * as React from 'react';
 import { Context } from './MainLayout';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
 import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
-import ElementJsonData from './ElementJsonData';
-import { type Shape } from '@mirohq/websdk-types';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import { EvModElementTypeEnum, IElementData } from '../types/element.types';
-import { IElementsStoreRecord } from '../store/ElementsStore';
+import { EvModElementTypeEnum } from '../types/element.types';
 import { EvModeElementStoreEvent } from '../types/appStore.types';
-import { ELEMENT_DATA_KEY } from '../consts';
 import EventsList from './EventsList';
 
 export default function EventsCatalog() {
