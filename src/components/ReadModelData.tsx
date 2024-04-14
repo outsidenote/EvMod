@@ -6,7 +6,8 @@ import ListItemText from '@mui/material/ListItemText';
 import type { Shape } from '@mirohq/websdk-types';
 import { EvModElementTypeEnum } from '../types/element.types';
 import { IElementsStoreRecord } from '../store/ElementsStore';
-import { eventNames } from 'process';
+import { Typography } from '@mui/material';
+import EventsList from './EventsList';
 
 
 
@@ -43,10 +44,8 @@ export default function ReadModelData({ selectedElement }: { selectedElement: Sh
 
     return (
         <div>
-            <h2>Read Model Events</h2>
-            <List dense>
-                {evtComponents}
-            </List>
+            <Typography variant="h5" component="div" sx={{ fontSize: 16 }}>Events</Typography>
+            <EventsList eventRecords={events} />
         </div>
 
     )
