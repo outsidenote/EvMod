@@ -14,36 +14,17 @@ import { EvModElementTypeEnum, IElementData } from '../types/element.types';
 import { IElementsStoreRecord } from '../store/ElementsStore';
 import { EvModeElementStoreEvent } from '../types/appStore.types';
 import { ELEMENT_DATA_KEY } from '../consts';
+import EventsList from './EventsList';
 
 export default function EventsCatalog() {
-    const [open, setOpen] = React.useState(false);
     const [store] = React.useContext(Context)
     const [search, setSearch] = React.useState('');
-    const [selectedEvent, setSelectedEvent] = React.useState<Shape>();
-    const [selectedElement, setSelectedElement] = React.useState<IElementsStoreRecord>();
-    const [eventData, setEventData] = React.useState<IElementData>();
     const [storedEvents, setStoredEvents] = React.useState(store.list(EvModElementTypeEnum.Event))
 
 
     const syncStoredEvents = () => {
         const storedEvents = store.list(EvModElementTypeEnum.Event).filter((el) => !el.originalMiroElementId);
         setStoredEvents([...(storedEvents || [])]);
-    }
-
-    const handleClose = () => {
-        setOpen(false);
-    }
-
-    const handleEventSelection = async (element: IElementsStoreRecord) => {
-        const el = await miro.board.getById(element.miroElementId);
-        if (el.type !== 'shape')
-            return;
-
-        setSelectedEvent(el as Shape);
-        const dataJson = (await (el as Shape).getMetadata(ELEMENT_DATA_KEY));
-        setEventData(dataJson as unknown as IElementData);
-        setSelectedElement(element);
-        setOpen(true);
     }
 
     const showingEvents = React.useMemo(() => {
@@ -53,17 +34,6 @@ export default function EventsCatalog() {
             storedEvents.filter(({ elementName }) => elementName.includes(search))
             : []
     }, [storedEvents, search]);
-
-    const eventsComponenets = React.useMemo(() => showingEvents.map((el) => {
-        return (
-            <ListItemButton key={el.miroElementId + showingEvents.length} onClick={() => handleEventSelection(el)}>
-                <ListItemText
-                    primary={`Event: ${el.elementName}`}
-                    secondary={`ID: ${el.miroElementId}`}
-                />
-            </ListItemButton>)
-    }), [showingEvents])
-
 
     React.useEffect(() => {
         const handleChange = (event: EvModeElementStoreEvent) => {
@@ -97,30 +67,7 @@ export default function EventsCatalog() {
                     setSearch(event.target.value);
                 }}
             />
-            <List dense>
-                {eventsComponenets}
-            </List>
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Card>
-                    <CardContent>
-                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                            Showing Data of:
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                            Event: {selectedElement?.elementName}
-                        </Typography>
-                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                            ID: {selectedElement?.miroElementId}
-                        </Typography>
-                        <ElementJsonData data={eventData} readonly={true} />
-                    </CardContent>
-                </Card>
-            </Modal>
+            <EventsList eventRecords={showingEvents} />
         </div>
     )
 }
