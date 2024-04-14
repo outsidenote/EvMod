@@ -36,7 +36,8 @@ export default function MainLayout() {
     const handleItemDeleted = async (event: ItemsDeleteEvent) => {
         console.log('MainLayout: DeletedItems:', event.items)
         event.items.forEach(async ({ id }) => {
-            const elementTypes = Object.keys(EvModElementTypeEnum);
+            const elementTypes = Object.keys(EvModElementTypeEnum)
+                .map(key => EvModElementTypeEnum[key as keyof typeof EvModElementTypeEnum]);
             let elementType: EvModElementTypeEnum | undefined;
 
             for (let i = 0; i < elementTypes.length; i++) {
