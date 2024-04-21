@@ -1,4 +1,4 @@
-import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported } from "@mirohq/websdk-types";
+import type { Connector, Card, AppCard, Tag, Embed, Image, Preview, Shape, StickyNote, Text, Frame, Group, Unsupported, Json } from "@mirohq/websdk-types";
 
 export enum EvModElementTypeEnum {
     Command = "Command",
@@ -19,6 +19,11 @@ export interface ICommandData {
 
 }
 
+export interface IReadModelData {
+    schema: Json
+    example: Json
+}
+
 export interface IElementMetadata {
     elementName: string,
     elementType: EvModElementTypeEnum
@@ -27,7 +32,7 @@ export interface IElementMetadata {
 
 export interface IElementData {
     elementType: EvModElementTypeEnum
-    data: ICommandData | IEventData
+    data?: ICommandData | IEventData | IReadModelData
 }
 
 export type MiroElementType = Connector | Card | AppCard | Tag | Embed | Image | Preview | Shape | StickyNote | Text | Frame | Group | Unsupported;
