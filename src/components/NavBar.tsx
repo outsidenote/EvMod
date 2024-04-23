@@ -7,6 +7,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import List from '@mui/material/List';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 import { Link, useLocation } from 'react-router-dom'
 
@@ -46,6 +47,15 @@ export default function NavBar() {
                     <ListItemButton selected={pathname == '/events-catalog'}>
                         <ListItemIcon>
                             <ListAltIcon />
+                        </ListItemIcon>
+                    </ListItemButton>
+                </Tooltip>
+            </Link>
+            <Link to="/project-management">
+                <Tooltip title="Project Management" placement="right">
+                    <ListItemButton selected={pathname == '/project-management'}>
+                        <ListItemIcon>
+                            <AssignmentTurnedInIcon />
                         </ListItemIcon>
                     </ListItemButton>
                 </Tooltip>

@@ -4,6 +4,7 @@ import MainLayout from './components/MainLayout';
 import ViewElement from './components/ViewElement';
 import AddElement from './components/AddElement';
 import EventsCatalog from './components/EventsCatalog';
+import ProjectManagement from './components/ProjectManagement';
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 
 import '../src/assets/style.css';
@@ -18,6 +19,7 @@ const router = createMemoryRouter([
       { path: 'view-element', element: <ViewElement /> },
       { path: 'add-element', element: (<AddElement />) },
       { path: 'events-catalog', element: (<EventsCatalog />) },
+      { path: 'project-management', element: (<ProjectManagement />) },
     ]
 
   }
