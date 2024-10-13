@@ -96,7 +96,7 @@ export default function AddElement() {
 
   const getHeight = () => {
     if (elementType == "Screen") return 150;
-    return 100;
+    return 70;
   };
 
   const createShape = async () => {
@@ -118,6 +118,7 @@ export default function AddElement() {
           color: getColor(),
           fillColor: getFillColor(),
           borderColor: "#1A1A1A",
+          fontSize: 24,
         },
         x: viewport.x + viewport.width / 2, // Default value: center of the board
         y: viewport.y + viewport.height / 2, // Default value: center of the board
